@@ -1,0 +1,32 @@
+---
+server:
+  port: 9015
+
+postgres-url: jdbc:postgresql://${POSTGRES_ADDRESS:localhost}:${POSTGRES_PORT:49001}/${POSTGRES_DB:vk_forwarder_bot}
+
+spring:
+  datasource:
+    url: ${postgres-url}
+    username: ${POSTGRES_APP_USER:d}
+    password: ${POSTGRES_APP_PASSWORD:d}
+
+forwarder:
+  vk:
+    token: ${FORWARDER_VK_TOKEN}
+    user-id: ${FORWARDER_VK_USER_ID}
+    group-id: ${FORWARDER_VK_GROUP_ID}
+    cookies-file-path: ${FORWARDER_VK_COOKIES_FILE_PATH:src/templates/docker/app/cookies.netscape}
+  tg:
+    token: ${FORWARDER_TG_TOKEN}
+    bot-username: ${FORWARDER_TG_BOT_USERNAME}
+    target-user-id: ${FORWARDER_TG_TARGET_USER_ID}
+  cache-dir-path: ${FORWARDER_CACHE_DIR_PATH:cache}
+  yt-ylp-file-path: ${FORWARDER_YT_YLP_FILE_PATH:src/dev/yt-dlp.exe}
+
+
+
+logging:
+  level:
+    org.taonity.vkforwarderbot: DEBUG
+#    org.springframework.web: DEBUG
+#    org.springframework.beans: DEBUG

@@ -1,0 +1,15 @@
+version: '2.4'
+
+services:
+  app:
+    image: generaltao725/vk-forwarder-bot:latest
+    env_file:
+      - ../.env
+    volumes:
+      - ./config:/config
+      - ./cookies.netscape:/vk-forwarder-bot/cookies.netscape
+    healthcheck:
+      test: curl localhost:9015/actuator/health
+      interval: 10s
+      timeout: 10s
+      retries: 100
