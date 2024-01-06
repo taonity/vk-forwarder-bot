@@ -18,7 +18,8 @@ private val logger = KotlinLogging.logger {}
 
 @Component
 class YtYlpService(
-    @Value("\${forwarder.vk.cookies-file-path}") private val vkCookiesFilePath: String,
+    @Value("\${forwarder.vk.username}") private val vkUsername: String,
+    @Value("\${forwarder.vk.password}") private val vkPassword: String,
     @Value("\${forwarder.cache-dir-path}") private val cacheDirPath: String,
     @Value("\${forwarder.yt-ylp-file-path}") private val ytYlpFilePath: String
 ) {
@@ -27,7 +28,11 @@ class YtYlpService(
         val vkVideoUrl = "https://vk.com/video${video.ownerId}_${video.id}"
         logger.debug { "Start downloading the video: $vkVideoUrl" }
 
-        val process = ProcessBuilder(ytYlpFilePath, "-P $cacheDirPath", "--cookies", vkCookiesFilePath, vkVideoUrl)
+        val process = ProcessBuilder(ytYlpFilePath,
+            "-P $cacheDirPath",
+            "--username", vkUsername,
+            "--password", vkPassword,
+            vkVideoUrl)
             .start()
         val videoDownloadingDuration = waitForVideoToDownalod(process)
 
