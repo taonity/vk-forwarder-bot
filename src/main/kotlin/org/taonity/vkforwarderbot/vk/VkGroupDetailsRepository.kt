@@ -5,5 +5,5 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface VkGroupDetailsRepository : CrudRepository<VkGroupDetailsEntity, Long> {
-    fun findByGroupId(groupId: Int): VkGroupDetailsEntity?
+    fun findByGroupId(groupId: Long): VkGroupDetailsEntity?
 }

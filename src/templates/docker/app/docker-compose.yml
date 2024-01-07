@@ -3,6 +3,8 @@ version: '2.4'
 services:
   app:
     image: generaltao725/vk-forwarder-bot:latest
+    environment:
+      - JDK_JAVA_OPTIONS=--add-opens java.base/java.lang=ALL-UNNAMED
     env_file:
       - ../.env
     volumes:

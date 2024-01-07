@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class VkBotConfig(
     @Value("\${forwarder.vk.token}") private val vkToken: String,
-    @Value("\${forwarder.vk.user-id}") private val vkUserId: Int
+    @Value("\${forwarder.vk.user-id}") private val vkUserId: Long
 ) {
 
     @Bean

@@ -2,9 +2,9 @@ package org.taonity.vkforwarderbot.tg
 
 import com.vk.api.sdk.objects.photos.Photo
 import com.vk.api.sdk.objects.video.Video
+import com.vk.api.sdk.objects.wall.WallItem
 import com.vk.api.sdk.objects.wall.WallpostAttachment
 import com.vk.api.sdk.objects.wall.WallpostAttachmentType
-import com.vk.api.sdk.objects.wall.WallpostFull
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -33,7 +33,7 @@ class TgBotService(
     private val MAX_VIDEO_DURATION = 300
     private val MAX_VIDEO_SIZE = 50
 
-    fun sendMediaGroup(post: WallpostFull) {
+    fun sendMediaGroup(post: WallItem) {
         val inputMedias = post.attachments.stream()
             .map { attachment -> attachmentToInputMedia(attachment) }
             .filter { inputMedia -> inputMedia != null }

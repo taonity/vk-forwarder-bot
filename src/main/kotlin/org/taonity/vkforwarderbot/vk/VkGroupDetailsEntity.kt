@@ -10,10 +10,10 @@ open class VkGroupDetailsEntity (
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "default_generator")
     open var id: Long?,
-    open var groupId: Int?,
+    open var groupId: Long?,
     open var lastForwardedPostDateTime: LocalDateTime?
 ) {
-    constructor(groupId: Int, lastForwardedPostDateTime: LocalDateTime) : this (null, groupId, lastForwardedPostDateTime) {}
+    constructor(groupId: Long, lastForwardedPostDateTime: LocalDateTime) : this (null, groupId, lastForwardedPostDateTime) {}
 
     override fun toString(): String {
         return "VkGroupDetails(id=$id, groupId=$groupId, lastForwardedPostDateTime=$lastForwardedPostDateTime)"

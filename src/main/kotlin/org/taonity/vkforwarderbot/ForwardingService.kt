@@ -2,9 +2,9 @@ package org.taonity.vkforwarderbot
 
 import com.vk.api.sdk.client.VkApiClient
 import com.vk.api.sdk.client.actors.UserActor
+import com.vk.api.sdk.objects.wall.WallItem
 import com.vk.api.sdk.objects.wall.WallpostAttachment
 import com.vk.api.sdk.objects.wall.WallpostAttachmentType
-import com.vk.api.sdk.objects.wall.WallpostFull
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
@@ -31,7 +31,7 @@ open class ForwardingService constructor(
     private val userActor: UserActor,
     private val vkGroupDetailsRepository: VkGroupDetailsRepository,
     private val tgService: TgBotService,
-    @Value("\${forwarder.vk.group-id}") private val vkGroupId: Int
+    @Value("\${forwarder.vk.group-id}") private val vkGroupId: Long
 ) {
 
     @Scheduled(fixedDelay = 60, timeUnit = TimeUnit.MINUTES)
@@ -59,7 +59,7 @@ open class ForwardingService constructor(
         logger.debug { "All posts have been forwarded" }
     }
 
-    private fun forwardPost(post: WallpostFull) {
+    private fun forwardPost(post: WallItem) {
         val photoAndVideoAttachments = post.attachments.stream()
             .filter { attachment -> isOfTypePhotoOrVideo(attachment) }
             .toList()
@@ -92,9 +92,9 @@ open class ForwardingService constructor(
     }
 
     private fun filterLatestPostsWithPhotosOrVideos(
-        posts: MutableList<WallpostFull>,
+        posts: MutableList<WallItem>,
         postDateTimeToBeginFrom: LocalDateTime
-    ): MutableList<WallpostFull> {
+    ): MutableList<WallItem> {
         val photoAndVideoPosts = posts.stream()
             .filter { item -> epochMilliToLocalDateTime(item.date).isAfter(postDateTimeToBeginFrom) }
             .filter { item ->
@@ -104,14 +104,14 @@ open class ForwardingService constructor(
         return photoAndVideoPosts
     }
 
-    private fun retrieveLastGroupUnpinnedPosts(): MutableList<WallpostFull> {
+    private fun retrieveLastGroupUnpinnedPosts(): MutableList<WallItem> {
         val posts = vkApiClient.wall()
             .get(userActor)
             .ownerId(vkGroupId)
             .execute()
             .items
             .stream()
-            .filter { item -> item.isPinned == null }
+            .filter { item -> !item.isPinned() }
             .toList()
             .takeIf { it.isNotEmpty() } ?: throw VkUnexpectedResponseException("There is not unpinned post requests")
         return posts
@@ -124,7 +124,7 @@ open class ForwardingService constructor(
         vkBotGroupDetails?.lastForwardedPostDateTime!!
     }
 
-    private fun getLastPostLocalDateTime(posts: MutableList<WallpostFull>): LocalDateTime {
+    private fun getLastPostLocalDateTime(posts: MutableList<WallItem>): LocalDateTime {
         val lastPostEpochMilli = posts[0].date
         return epochMilliToLocalDateTime(lastPostEpochMilli)
     }
