@@ -9,12 +9,11 @@ import java.time.LocalDateTime
 open class VkGroupDetailsEntity (
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "default_generator")
-    open var id: Long?,
+    open var id: Long? = null,
     open var groupId: Long?,
-    open var lastForwardedPostDateTime: LocalDateTime?
+    open var lastForwardedPostDateTime: LocalDateTime? = null,
+    open var lastForwardedStoryDateTime: LocalDateTime? = null
 ) {
-    constructor(groupId: Long, lastForwardedPostDateTime: LocalDateTime) : this (null, groupId, lastForwardedPostDateTime) {}
-
     override fun toString(): String {
         return "VkGroupDetails(id=$id, groupId=$groupId, lastForwardedPostDateTime=$lastForwardedPostDateTime)"
     }

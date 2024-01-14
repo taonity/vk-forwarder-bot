@@ -1,0 +1,1 @@
+ALTER TABLE vk_group_details ADD COLUMN last_forwarded_story_date_time TIMESTAMP NULL;

@@ -11,7 +11,7 @@ import java.time.LocalDateTime
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @DataJpaTest
 @Rollback(false)
-class VkGroupDetailsEntityRepositoryTest constructor(
+class VkGroupDetailsEntityRepositoryTest (
    @Autowired  private val vkGroupDetailsRepository: VkGroupDetailsRepository
 ) {
     @Test

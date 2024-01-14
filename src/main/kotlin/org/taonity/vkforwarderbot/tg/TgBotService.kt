@@ -8,6 +8,7 @@ import com.vk.api.sdk.objects.wall.WallpostAttachmentType
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
+import org.taonity.vkforwarderbot.CacheService
 import org.taonity.vkforwarderbot.YtYlpService
 import org.taonity.vkforwarderbot.exceptions.TgUnexpectedResponseException
 import org.telegram.telegrambots.meta.api.methods.send.SendMediaGroup
@@ -19,6 +20,7 @@ import org.telegram.telegrambots.meta.api.objects.media.InputMediaPhoto
 import org.telegram.telegrambots.meta.api.objects.media.InputMediaVideo
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException
 import java.io.File
+import java.net.URL
 import java.time.Duration
 import java.time.Instant
 
@@ -28,6 +30,7 @@ private val logger = KotlinLogging.logger {}
 class TgBotService(
     private val tgBot: TgBot,
     private val ytYlpService: YtYlpService,
+    private val cacheService: CacheService,
     @Value("\${forwarder.tg.target-user-id}") private val tgTargetUserId: String
 ) {
     private val MAX_VIDEO_DURATION = 300
@@ -54,11 +57,11 @@ class TgBotService(
         }
         val videoDownloadingDuration = Duration.between(uploadingStartTime, Instant.now()).toSeconds()
         logger.debug { "The media group have been uploaded with uploading duration of $videoDownloadingDuration sec" }
-        ytYlpService.clearCache()
+        cacheService.clearCache()
     }
 
     fun sendPhoto(photo: Photo) {
-        val vkPhotoUrl = photo.sizes.last().url.toURL();
+        val vkPhotoUrl = photo.sizes.last().url.toURL()
         val sendPhoto = SendPhoto.builder()
             .chatId(tgTargetUserId)
             .photo(InputFile(vkPhotoUrl.toString()))
@@ -73,16 +76,25 @@ class TgBotService(
     }
 
     fun sendVideo(video: Video) {
-        val file = validateVideo(video)
+        val file = downloadVideo(video)
             ?: return
 
-        val vkThumbUrl = video.image?.last()?.url?.toURL()
-        val sendVideo = SendVideo.builder()
+        val vkThumbUrl = video.image?.last()?.url?.toURL()!!
+        sendVideo(file, vkThumbUrl)
+        cacheService.clearCache()
+    }
+
+    fun sendVideo(file: File, thumbUrl: URL?) {
+        val sendVideoBuilder = SendVideo.builder()
             .chatId(tgTargetUserId)
             .video(InputFile(file))
-            .thumb(InputFile(vkThumbUrl?.toString()))
-            .build()
 
+        thumbUrl.let {
+            sendVideoBuilder
+                .thumbnail(InputFile(it.toString()))
+        }
+
+        val sendVideo = sendVideoBuilder.build()
         val uploadingStartTime = Instant.now()
         try {
             tgBot.execute(sendVideo)
@@ -95,10 +107,9 @@ class TgBotService(
         }
         val videoDownloadingDuration = Duration.between(uploadingStartTime, Instant.now()).toSeconds()
         logger.debug { "The video have been uploaded with uploading duration of $videoDownloadingDuration sec" }
-        ytYlpService.clearCache()
     }
 
-    private fun validateVideo(video: Video) : File? {
+    private fun downloadVideo(video: Video) : File? {
         if (video.duration > MAX_VIDEO_DURATION) {
             logger.debug { "The video with duration ${video.duration} sec is too long" }
             return null
@@ -134,14 +145,14 @@ class TgBotService(
     }
 
     private fun toInputMediaVideo(video: Video) : InputMediaVideo? {
-        val file = validateVideo(video)
+        val file = downloadVideo(video)
             ?: return null
 
         val vkThumbUrl = video.image?.last()?.url?.toURL()
         return InputMediaVideo.builder()
             .media("attach://${file.name}")
             .newMediaFile(file)
-            .thumb(InputFile(vkThumbUrl?.toString()))
+            .thumbnail(InputFile(vkThumbUrl?.toString()))
             .build()
     }
 
