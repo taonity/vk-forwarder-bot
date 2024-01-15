@@ -17,6 +17,8 @@ forwarder:
     group-id: ${FORWARDER_VK_GROUP_ID}
     username: ${FORWARDER_VK_USERNAME}
     password: ${FORWARDER_VK_PASSWORD}
+    selenium:
+      browser-log-file-enabled: false
   tg:
     token: ${FORWARDER_TG_TOKEN}
     bot-username: ${FORWARDER_TG_BOT_USERNAME}

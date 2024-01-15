@@ -16,7 +16,8 @@ private val logger = KotlinLogging.logger {}
 class SeleniumVkWalker (
     private val vkUsername: String,
     private val vkPassword: String,
-    private val cacheDirPath: String
+    private val cacheDirPath: String,
+    private val browserLogFileEnabled: Boolean
 ) {
     private lateinit var driver: WebDriver
     private lateinit var wait: Wait<WebDriver>
@@ -69,7 +70,9 @@ class SeleniumVkWalker (
         firefoxOptions.setPageLoadStrategy(PageLoadStrategy.NONE)
         firefoxOptions.setProfile(firefoxProfile)
         firefoxOptions.addArguments("-headless", "--window-size=1920,1080")
-        System.setProperty(FirefoxDriver.SystemProperty.BROWSER_LOGFILE, "/dev/null")
+        if (!browserLogFileEnabled) {
+            System.setProperty(FirefoxDriver.SystemProperty.BROWSER_LOGFILE, "/dev/null")
+        }
         return FirefoxDriver(firefoxOptions)
     }
 
