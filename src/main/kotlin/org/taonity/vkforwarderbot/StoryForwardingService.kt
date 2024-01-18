@@ -53,6 +53,19 @@ class StoryForwardingService (
 
     private fun forwardStories(stories: MutableList<Story>) {
         val seleniumVkWalker = seleniumService.buildVkWalker()
+        try {
+            forwardStoriesUsingSeleniumVkWalker(seleniumVkWalker, stories)
+        } catch (e: Exception) {
+            throw e
+        } finally {
+            seleniumVkWalker.quit()
+        }
+    }
+
+    private fun forwardStoriesUsingSeleniumVkWalker(
+        seleniumVkWalker: SeleniumVkWalker,
+        stories: MutableList<Story>
+    ) {
         loginIntoVkWith2Attempts(seleniumVkWalker)
         val storyChunks = divideStoriesOnChunks(stories)
         storyChunks.forEachIndexed { index, storyChunk ->

@@ -27,7 +27,6 @@ class SeleniumVkWalker (
 
         logger.debug { "Start selenium vk session" }
         driver.get("https://vk.com/")
-
         enterPhoneNumber()
         pressSignInButton()
         enterPassword()
@@ -60,6 +59,10 @@ class SeleniumVkWalker (
 
         }
         Thread.sleep(5000)
+    }
+
+    fun quit() {
+        driver.quit();
     }
 
     private fun buildFirefoxDriver(): WebDriver {
