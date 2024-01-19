@@ -40,7 +40,7 @@ class SeleniumVkWalker (
         for (story in stories) {
             val storyLink = "https://vk.com/feed?w=story${story.ownerId}_${story.id}%2Ffeed"
             logger.debug { "About to go to $storyLink" }
-            logger.debug { "Detail link is ${story.link.url}" }
+            logger.debug { "Detail link is ${story.link}" }
             driver.get(storyLink)
             logger.debug { "Page loaded" }
             try {
