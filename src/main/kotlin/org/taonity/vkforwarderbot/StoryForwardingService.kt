@@ -42,6 +42,7 @@ class StoryForwardingService (
 ) {
     fun forward(vkBotGroupDetails: VkGroupDetailsEntity) {
         val stories = retrieveStories(vkBotGroupDetails)
+            ?: return
 
         logger.debug { "${stories.size} stories are ready to forward" }
         if (stories.isEmpty()) {
@@ -73,9 +74,13 @@ class StoryForwardingService (
         }
     }
 
-    private fun retrieveStories(vkBotGroupDetails: VkGroupDetailsEntity): MutableList<Story> {
+    private fun retrieveStories(vkBotGroupDetails: VkGroupDetailsEntity): MutableList<Story>? {
         val feedItems = retrieveFeedItems()
         val availableStoriesWithVideos = getFilteredAvailableStoriesWithVideos(feedItems)
+        if (availableStoriesWithVideos.isEmpty()) {
+            logger.debug { "There are no available stories with videos" }
+            return null
+        }
         val lastStoryLocalDateTime = getLastStoryLocalDateTime(availableStoriesWithVideos)
         val postDateTimeToBeginFrom =
             calculateStoryDateTimeToBeginFrom(vkBotGroupDetails.lastForwardedStoryDateTime, lastStoryLocalDateTime)
