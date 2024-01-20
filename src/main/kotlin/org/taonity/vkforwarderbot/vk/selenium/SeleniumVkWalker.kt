@@ -1,4 +1,4 @@
-package org.taonity.vkforwarderbot.vk
+package org.taonity.vkforwarderbot.vk.selenium
 
 import com.vk.api.sdk.objects.stories.Story
 import mu.KotlinLogging

@@ -1,4 +1,4 @@
-package org.taonity.vkforwarderbot.vk
+package org.taonity.vkforwarderbot.vk.selenium
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component

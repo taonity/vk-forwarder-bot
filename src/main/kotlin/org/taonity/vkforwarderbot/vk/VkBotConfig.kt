@@ -15,13 +15,13 @@ class VkBotConfig(
 ) {
 
     @Bean
-    open fun vkApiClient(): VkApiClient {
+    fun vkApiClient(): VkApiClient {
         val transportClient: TransportClient = HttpTransportClient()
         return VkApiClient(transportClient)
     }
 
     @Bean
-    open fun userActor(): UserActor {
+    fun userActor(): UserActor {
         return UserActor(vkUserId, vkToken)
     }
 }

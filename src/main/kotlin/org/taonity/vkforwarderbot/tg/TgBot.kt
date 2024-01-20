@@ -9,10 +9,7 @@ import org.telegram.telegrambots.meta.api.objects.Update
 open class TgBot(
     @Value("\${forwarder.tg.token}") private val tgToken: String,
     @Value("\${forwarder.tg.bot-username}") private val tgBotUsername: String
-): TelegramLongPollingBot() {
-    override fun getBotToken(): String {
-        return tgToken
-    }
+): TelegramLongPollingBot(tgToken) {
 
     override fun getBotUsername(): String {
         return tgBotUsername

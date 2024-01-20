@@ -1,7 +1,5 @@
-package org.taonity.vkforwarderbot
+package org.taonity.vkforwarderbot.forwarding
 
-import com.vk.api.sdk.client.VkApiClient
-import com.vk.api.sdk.client.actors.UserActor
 import com.vk.api.sdk.objects.stories.FeedItem
 import com.vk.api.sdk.objects.stories.Story
 import com.vk.api.sdk.objects.stories.StoryType
@@ -9,13 +7,14 @@ import mu.KotlinLogging
 import org.openqa.selenium.TimeoutException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
+import org.taonity.vkforwarderbot.CacheService
 import org.taonity.vkforwarderbot.exceptions.DbUnexpectedResponseException
-import org.taonity.vkforwarderbot.exceptions.VkUnexpectedResponseException
 import org.taonity.vkforwarderbot.tg.TgBotService
-import org.taonity.vkforwarderbot.vk.SeleniumService
-import org.taonity.vkforwarderbot.vk.SeleniumVkWalker
 import org.taonity.vkforwarderbot.vk.VkGroupDetailsEntity
 import org.taonity.vkforwarderbot.vk.VkGroupDetailsRepository
+import org.taonity.vkforwarderbot.vk.VkBotService
+import org.taonity.vkforwarderbot.vk.selenium.SeleniumService
+import org.taonity.vkforwarderbot.vk.selenium.SeleniumVkWalker
 import java.io.File
 import java.time.Instant
 import java.time.LocalDateTime
@@ -32,8 +31,7 @@ private const val STORY_CHUNK_SIZE = 3
 
 @Component
 class StoryForwardingService (
-    private val vkApiClient: VkApiClient,
-    private val userActor: UserActor,
+    private val vkBotService: VkBotService,
     private val tgService: TgBotService,
     private val seleniumService: SeleniumService,
     private val vkGroupDetailsRepository: VkGroupDetailsRepository,
@@ -75,7 +73,7 @@ class StoryForwardingService (
     }
 
     private fun retrieveStories(vkBotGroupDetails: VkGroupDetailsEntity): MutableList<Story>? {
-        val feedItems = retrieveFeedItems()
+        val feedItems = vkBotService.retrieveFeedItems(vkGroupId)
         val availableStoriesWithVideos = getFilteredAvailableStoriesWithVideos(feedItems)
         if (availableStoriesWithVideos.isEmpty()) {
             logger.debug { "There are no available stories with videos" }
@@ -130,15 +128,6 @@ class StoryForwardingService (
             .sorted(Comparator.comparing { story -> story.date })
             .toList().last().date
         return epochMilliToLocalDateTime(lastStoryEpochMilli)
-    }
-
-    private fun retrieveFeedItems(): MutableList<FeedItem> {
-        return vkApiClient.stories()
-            .getV5113(userActor)
-            .ownerId(vkGroupId)
-            .execute()
-            .items
-            ?: throw VkUnexpectedResponseException("Failed to retrieve feed items")
     }
 
     private fun getFilteredAvailableStoriesWithVideos(feedItems: MutableList<FeedItem>): MutableList<Story> =

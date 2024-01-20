@@ -1,7 +1,5 @@
-package org.taonity.vkforwarderbot
+package org.taonity.vkforwarderbot.forwarding
 
-import com.vk.api.sdk.client.VkApiClient
-import com.vk.api.sdk.client.actors.UserActor
 import com.vk.api.sdk.objects.wall.WallItem
 import com.vk.api.sdk.objects.wall.WallpostAttachment
 import com.vk.api.sdk.objects.wall.WallpostAttachmentType
@@ -13,6 +11,7 @@ import org.taonity.vkforwarderbot.exceptions.VkUnexpectedResponseException
 import org.taonity.vkforwarderbot.tg.TgBotService
 import org.taonity.vkforwarderbot.vk.VkGroupDetailsEntity
 import org.taonity.vkforwarderbot.vk.VkGroupDetailsRepository
+import org.taonity.vkforwarderbot.vk.VkBotService
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDateTime
@@ -25,8 +24,7 @@ private const val HOURS_TIME_PERIOD_TO_FORWARD_POSTS_IN = 1L
 
 @Component
 class PostForwardingService (
-    private val vkApiClient: VkApiClient,
-    private val userActor: UserActor,
+    private val vkBotService: VkBotService,
     private val vkGroupDetailsRepository: VkGroupDetailsRepository,
     private val tgService: TgBotService,
     @Value("\${forwarder.vk.group-id}") private val vkGroupId: Long
@@ -93,11 +91,7 @@ class PostForwardingService (
     }
 
     private fun retrieveLastGroupUnpinnedPosts(): MutableList<WallItem> {
-        return vkApiClient.wall()
-            .get(userActor)
-            .ownerId(vkGroupId)
-            .execute()
-            .items
+        return vkBotService.retrieveWallItems(vkGroupId)
             .stream()
             .filter { item -> !item.isPinned() }
             .toList()

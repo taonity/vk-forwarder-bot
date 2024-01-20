@@ -1,9 +1,10 @@
-package org.taonity.vkforwarderbot
+package org.taonity.vkforwarderbot.forwarding
 
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
+import org.taonity.vkforwarderbot.CacheService
 import org.taonity.vkforwarderbot.vk.VkGroupDetailsEntity
 import org.taonity.vkforwarderbot.vk.VkGroupDetailsRepository
 import java.util.Objects.isNull

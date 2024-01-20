@@ -24,29 +24,33 @@ class YtYlpService(
         val vkVideoUrl = "https://vk.com/video${video.ownerId}_${video.id}"
         logger.debug { "Start downloading the video: $vkVideoUrl" }
 
-        val process = ProcessBuilder(ytYlpFilePath,
-            "-P ${cacheService.cacheDirPath}",
-            "--username", vkUsername,
-            "--password", vkPassword,
-            vkVideoUrl)
-            .start()
-        val videoDownloadingDuration = waitForVideoToDownalod(process)
-
-        val ytDlpErrorLog = process.errorReader().lines().collect(Collectors.joining())
+        val ytDlpErrorLog = runDownloadingProcessAndWait(vkVideoUrl)
         if(ytDlpErrorLog.isNotEmpty()) {
             logger.error { ytDlpErrorLog }
             return null
         }
-        val videoName = cacheService.listFilesInCache().stream()
+
+        return cacheService.listFilesInCache().stream()
             .filter { videoName -> videoName.contains(String.format("%s_%s", video.ownerId, video.id)) }
             .findAny()
             .get()
 
-        logger.debug { "Finish downloading the video with downloading duration of $videoDownloadingDuration sec" }
-        return videoName
     }
 
-    private fun waitForVideoToDownalod(process: Process): Long {
+    private fun runDownloadingProcessAndWait(vkVideoUrl: String): String {
+        val process = ProcessBuilder(
+            ytYlpFilePath,
+            "-P ${cacheService.cacheDirPath}",
+            "--username", vkUsername,
+            "--password", vkPassword,
+            vkVideoUrl
+        )
+            .start()
+        waitForVideoToDownload(process)
+        return process.errorReader().lines().collect(Collectors.joining())
+    }
+
+    private fun waitForVideoToDownload(process: Process) {
         val downloadingStartTime = Instant.now()
 
         // TODO: find a better way to do the waiting
@@ -56,6 +60,6 @@ class YtYlpService(
         }
 
         val videoDownloadingDuration = Duration.between(downloadingStartTime, Instant.now()).toSeconds()
-        return videoDownloadingDuration
+        logger.debug { "Finish downloading the video with downloading duration of $videoDownloadingDuration sec" }
     }
 }
