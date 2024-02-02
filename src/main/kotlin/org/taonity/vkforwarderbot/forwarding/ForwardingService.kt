@@ -1,13 +1,11 @@
 package org.taonity.vkforwarderbot.forwarding
 
 import mu.KotlinLogging
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.taonity.vkforwarderbot.CacheService
 import org.taonity.vkforwarderbot.vk.VkGroupDetailsEntity
 import org.taonity.vkforwarderbot.vk.VkGroupDetailsRepository
-import java.util.Objects.isNull
 import java.util.concurrent.TimeUnit
 
 private val logger = KotlinLogging.logger {}
@@ -18,33 +16,36 @@ class ForwardingService (
     private val postForwardingService: PostForwardingService,
     private val storyForwardingService: StoryForwardingService,
     private val cacheService: CacheService,
-    @Value("\${forwarder.vk.group-id}") private val vkGroupId: Long
 ) {
 
     @Scheduled(fixedDelay = 60, timeUnit = TimeUnit.MINUTES)
-    fun forward() {
+    fun forwardGroupsContent() {
         logger.debug { "Forwarding job started" }
 
-        val vkBotGroupDetails = saveGroupDetailsWithGroupIdIfNull()
         cacheService.createCacheDirIfMissing()
+        val vkBotGroupDetailsEntities = vkGroupDetailsRepository.findAll().toList()
+        if (vkBotGroupDetailsEntities.isEmpty()) {
+            logger.debug { "No groups to forward" }
+            return
+        }
 
-        try {
-            postForwardingService.forwardPosts(vkBotGroupDetails)
-            storyForwardingService.forward(vkBotGroupDetails)
-        } catch (e: Exception) {
-            logger.error { "Error occurred while forwarding process" }
-            cacheService.clearCache()
-            throw e
+        for (vkBotGroupDetailsEntity in vkBotGroupDetailsEntities) {
+            forwardGroupContent(vkBotGroupDetailsEntity)
         }
 
         logger.debug { "Forwarding job finished" }
     }
 
-    private fun saveGroupDetailsWithGroupIdIfNull() : VkGroupDetailsEntity {
-        val vkBotGroupDetails = vkGroupDetailsRepository.findByGroupId(vkGroupId)
-        if (isNull(vkBotGroupDetails)) {
-            return vkGroupDetailsRepository.save(VkGroupDetailsEntity(groupId = vkGroupId))
+    private fun forwardGroupContent(vkBotGroupDetailsEntity: VkGroupDetailsEntity) {
+        logger.debug { "About to forward from vk group ${vkBotGroupDetailsEntity.vkGroupId} to tg channel ${vkBotGroupDetailsEntity.tgChannelId}" }
+        try {
+            postForwardingService.forwardPosts(vkBotGroupDetailsEntity)
+            storyForwardingService.forwardStories(vkBotGroupDetailsEntity)
+        } catch (e: Exception) {
+            logger.error { "Error occurred while forwarding process" }
+            cacheService.clearCache()
+            e.printStackTrace()
         }
-        return vkBotGroupDetails!!;
+        logger.debug { "Finish forwarding for the group" }
     }
 }

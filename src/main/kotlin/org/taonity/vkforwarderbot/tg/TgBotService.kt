@@ -6,7 +6,6 @@ import com.vk.api.sdk.objects.wall.WallItem
 import com.vk.api.sdk.objects.wall.WallpostAttachment
 import com.vk.api.sdk.objects.wall.WallpostAttachmentType
 import mu.KotlinLogging
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.taonity.vkforwarderbot.CacheService
 import org.taonity.vkforwarderbot.YtYlpService
@@ -31,62 +30,70 @@ class TgBotService(
     private val tgBot: TgBot,
     private val ytYlpService: YtYlpService,
     private val cacheService: CacheService,
-    @Value("\${forwarder.tg.target-user-id}") private val tgTargetUserId: String
+    private val tgMessageSendingRateLimiter: TgMessageSendingRateLimiter
 ) {
     private val MAX_VIDEO_DURATION = 300
     private val MAX_VIDEO_SIZE = 50
 
-    fun sendMediaGroup(post: WallItem) {
+    fun sendMediaGroup(post: WallItem, tgTargetId: String) {
         val inputMedias = post.attachments.stream()
             .map { attachment -> attachmentToInputMedia(attachment) }
             .filter { inputMedia -> inputMedia != null }
             .toList()
+
         val sendMediaGroup = SendMediaGroup.builder()
-            .chatId(tgTargetUserId)
+            .chatId(tgTargetId)
             .medias(inputMedias)
             .build()
 
         val uploadingStartTime = Instant.now()
-        try {
-            tgBot.execute(sendMediaGroup)
-        } catch (e: TelegramApiException) {
-            val videoDownloadingDuration = Duration.between(uploadingStartTime, Instant.now()).toSeconds()
-            throw TgUnexpectedResponseException(
-                "Failed to upload media group with uploading duration of $videoDownloadingDuration sec", e
-            )
+
+        tgMessageSendingRateLimiter.acquireTokensAndRun(inputMedias.size) {
+            try {
+                tgBot.execute(sendMediaGroup)
+            } catch (e: TelegramApiException) {
+                val videoDownloadingDuration = Duration.between(uploadingStartTime, Instant.now()).toSeconds()
+                throw TgUnexpectedResponseException(
+                    "Failed to upload media group with uploading duration of $videoDownloadingDuration sec", e
+                )
+            }
         }
+
         val videoDownloadingDuration = Duration.between(uploadingStartTime, Instant.now()).toSeconds()
-        logger.debug { "The media group have been uploaded with uploading duration of $videoDownloadingDuration sec" }
+        logger.debug { "Media group have been uploaded with uploading duration of $videoDownloadingDuration sec" }
         cacheService.clearCache()
     }
 
-    fun sendPhoto(photo: Photo) {
+    fun sendPhoto(photo: Photo, tgTargetId: String) {
         val vkPhotoUrl = photo.sizes.last().url.toURL()
         val sendPhoto = SendPhoto.builder()
-            .chatId(tgTargetUserId)
+            .chatId(tgTargetId)
             .photo(InputFile(vkPhotoUrl.toString()))
             .build()
 
-        try {
-            tgBot.execute(sendPhoto)
-        } catch (e: TelegramApiException) {
-            throw RuntimeException(e)
+        tgMessageSendingRateLimiter.acquireTokensAndRun {
+            try {
+                tgBot.execute(sendPhoto)
+            } catch (e: TelegramApiException) {
+                throw RuntimeException(e)
+            }
         }
+
         logger.debug { "A photo have been forwarded" }
     }
 
-    fun sendVideo(video: Video) {
+    fun sendVideo(video: Video, tgTargetId: String) {
         val file = downloadVideo(video)
             ?: return
 
         val vkThumbUrl = video.image?.last()?.url?.toURL()!!
-        sendVideo(file, vkThumbUrl)
+        sendVideo(file, vkThumbUrl, tgTargetId)
         cacheService.clearCache()
     }
 
-    fun sendVideo(file: File, thumbUrl: URL?) {
+    fun sendVideo(file: File, thumbUrl: URL?, tgTargetId: String) {
         val sendVideoBuilder = SendVideo.builder()
-            .chatId(tgTargetUserId)
+            .chatId(tgTargetId)
             .video(InputFile(file))
 
         thumbUrl.let {
@@ -96,22 +103,25 @@ class TgBotService(
 
         val sendVideo = sendVideoBuilder.build()
         val uploadingStartTime = Instant.now()
-        try {
-            tgBot.execute(sendVideo)
-        } catch (e: TelegramApiException) {
-            val videoDownloadingDuration = Duration.between(uploadingStartTime, Instant.now()).toSeconds()
-            throw TgUnexpectedResponseException(
-                "Failed to upload video with uploading duration of $videoDownloadingDuration sec",
-                e
-            )
+        tgMessageSendingRateLimiter.acquireTokensAndRun {
+            try {
+                tgBot.execute(sendVideo)
+            } catch (e: TelegramApiException) {
+                val videoDownloadingDuration = Duration.between(uploadingStartTime, Instant.now()).toSeconds()
+                throw TgUnexpectedResponseException(
+                    "Failed to upload video with uploading duration of $videoDownloadingDuration sec",
+                    e
+                )
+            }
         }
+
         val videoDownloadingDuration = Duration.between(uploadingStartTime, Instant.now()).toSeconds()
-        logger.debug { "The video have been uploaded with uploading duration of $videoDownloadingDuration sec" }
+        logger.debug { "Video have been uploaded with uploading duration of $videoDownloadingDuration sec" }
     }
 
     private fun downloadVideo(video: Video) : File? {
         if (video.duration > MAX_VIDEO_DURATION) {
-            logger.debug { "The video with duration ${video.duration} sec is too long" }
+            logger.debug { "Video with duration ${video.duration} sec is too long" }
             return null
         }
 
@@ -121,7 +131,7 @@ class TgBotService(
 
         val videoSizeInMb = bytesToMegabytes(file.length())
         if (videoSizeInMb >= MAX_VIDEO_SIZE) {
-            logger.debug { "The video with size $videoSizeInMb MB is too large" }
+            logger.debug { "Video with size $videoSizeInMb MB is too large" }
             return null
         }
 

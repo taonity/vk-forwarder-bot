@@ -16,7 +16,7 @@ class VkGroupDetailsEntityRepositoryTest (
 ) {
     @Test
     fun test() {
-        val e = vkGroupDetailsRepository.findByGroupId(123)
+        val e = vkGroupDetailsRepository.findByVkGroupId(123)
         e?.lastForwardedPostDateTime = LocalDateTime.now()
         vkGroupDetailsRepository.save(e!!)
 //        println(vkGroupDetailsRepository.findByGroupId(123L))

@@ -4,14 +4,13 @@ import com.vk.api.sdk.objects.wall.WallItem
 import com.vk.api.sdk.objects.wall.WallpostAttachment
 import com.vk.api.sdk.objects.wall.WallpostAttachmentType
 import mu.KotlinLogging
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.taonity.vkforwarderbot.exceptions.DbUnexpectedResponseException
 import org.taonity.vkforwarderbot.exceptions.VkUnexpectedResponseException
 import org.taonity.vkforwarderbot.tg.TgBotService
+import org.taonity.vkforwarderbot.vk.VkBotService
 import org.taonity.vkforwarderbot.vk.VkGroupDetailsEntity
 import org.taonity.vkforwarderbot.vk.VkGroupDetailsRepository
-import org.taonity.vkforwarderbot.vk.VkBotService
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDateTime
@@ -27,10 +26,9 @@ class PostForwardingService (
     private val vkBotService: VkBotService,
     private val vkGroupDetailsRepository: VkGroupDetailsRepository,
     private val tgService: TgBotService,
-    @Value("\${forwarder.vk.group-id}") private val vkGroupId: Long
 ) {
     fun forwardPosts(vkBotGroupDetails: VkGroupDetailsEntity) {
-        val posts = retrieveLastGroupUnpinnedPosts()
+        val posts = retrieveLastGroupUnpinnedPosts(vkBotGroupDetails.vkGroupId)
 
         val lastPostLocalDateTime = getLastPostLocalDateTime(posts)
         val postDateTimeToBeginFrom =
@@ -41,36 +39,36 @@ class PostForwardingService (
 
         for (post in photoAndVideoPosts) {
             val forwardingStartTime = Instant.now()
-            forwardPost(post)
+            forwardPost(post, vkBotGroupDetails.tgChannelId)
             val postForwardingDuration = Duration.between(forwardingStartTime, Instant.now()).toSeconds()
-            logger.debug { "The post have been forwarded with time elapsed $postForwardingDuration sec" }
+            logger.debug { "Post have been forwarded with time elapsed $postForwardingDuration sec" }
         }
 
-        saveLastPostLocalDateTime(lastPostLocalDateTime)
+        saveLastPostLocalDateTime(lastPostLocalDateTime, vkBotGroupDetails.vkGroupId)
     }
 
-    private fun forwardPost(post: WallItem) {
+    private fun forwardPost(post: WallItem, tgTargetId: String) {
         val photoAndVideoAttachments = post.attachments.stream()
             .filter { attachment -> isOfTypePhotoOrVideo(attachment) }
             .toList()
 
         when (photoAndVideoAttachments.size) {
             0 -> return
-            1 -> sendPhotoOrVideo(photoAndVideoAttachments[0])
-            else -> tgService.sendMediaGroup(post)
+            1 -> sendPhotoOrVideo(photoAndVideoAttachments[0], tgTargetId)
+            else -> tgService.sendMediaGroup(post, tgTargetId)
         }
     }
 
-    private fun sendPhotoOrVideo(photoOrVideoAttachment: WallpostAttachment) {
+    private fun sendPhotoOrVideo(photoOrVideoAttachment: WallpostAttachment, tgTargetId: String) {
         when (photoOrVideoAttachment.type) {
-            WallpostAttachmentType.PHOTO -> tgService.sendPhoto(photoOrVideoAttachment.photo)
-            WallpostAttachmentType.VIDEO -> tgService.sendVideo(photoOrVideoAttachment.video)
+            WallpostAttachmentType.PHOTO -> tgService.sendPhoto(photoOrVideoAttachment.photo, tgTargetId)
+            WallpostAttachmentType.VIDEO -> tgService.sendVideo(photoOrVideoAttachment.video, tgTargetId)
             else -> {}
         }
     }
 
-    private fun saveLastPostLocalDateTime(lastPostLocalDateTime: LocalDateTime) {
-        val vkBotGroupDetails = vkGroupDetailsRepository.findByGroupId(vkGroupId)
+    private fun saveLastPostLocalDateTime(lastPostLocalDateTime: LocalDateTime, vkGroupId: Long) {
+        val vkBotGroupDetails = vkGroupDetailsRepository.findByVkGroupId(vkGroupId)
             ?: throw DbUnexpectedResponseException("Failed to retrieve vk group details")
 
         vkBotGroupDetails.lastForwardedPostDateTime = lastPostLocalDateTime
@@ -90,7 +88,7 @@ class PostForwardingService (
         return photoAndVideoPosts
     }
 
-    private fun retrieveLastGroupUnpinnedPosts(): MutableList<WallItem> {
+    private fun retrieveLastGroupUnpinnedPosts(vkGroupId: Long): MutableList<WallItem> {
         return vkBotService.retrieveWallItems(vkGroupId)
             .stream()
             .filter { item -> !item.isPinned() }

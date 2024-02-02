@@ -5,14 +5,13 @@ import com.vk.api.sdk.objects.stories.Story
 import com.vk.api.sdk.objects.stories.StoryType
 import mu.KotlinLogging
 import org.openqa.selenium.TimeoutException
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.taonity.vkforwarderbot.CacheService
 import org.taonity.vkforwarderbot.exceptions.DbUnexpectedResponseException
 import org.taonity.vkforwarderbot.tg.TgBotService
+import org.taonity.vkforwarderbot.vk.VkBotService
 import org.taonity.vkforwarderbot.vk.VkGroupDetailsEntity
 import org.taonity.vkforwarderbot.vk.VkGroupDetailsRepository
-import org.taonity.vkforwarderbot.vk.VkBotService
 import org.taonity.vkforwarderbot.vk.selenium.SeleniumService
 import org.taonity.vkforwarderbot.vk.selenium.SeleniumVkWalker
 import java.io.File
@@ -36,9 +35,8 @@ class StoryForwardingService (
     private val seleniumService: SeleniumService,
     private val vkGroupDetailsRepository: VkGroupDetailsRepository,
     private val cacheService: CacheService,
-    @Value("\${forwarder.vk.group-id}") private val vkGroupId: Long,
 ) {
-    fun forward(vkBotGroupDetails: VkGroupDetailsEntity) {
+    fun forwardStories(vkBotGroupDetails: VkGroupDetailsEntity) {
         val stories = retrieveStories(vkBotGroupDetails)
             ?: return
 
@@ -47,13 +45,13 @@ class StoryForwardingService (
             return
         }
 
-        forwardStories(stories)
+        forwardStories(stories, vkBotGroupDetails)
     }
 
-    private fun forwardStories(stories: MutableList<Story>) {
+    private fun forwardStories(stories: MutableList<Story>, vkBotGroupDetails: VkGroupDetailsEntity) {
         val seleniumVkWalker = seleniumService.buildVkWalker()
         try {
-            forwardStoriesUsingSeleniumVkWalker(seleniumVkWalker, stories)
+            forwardStoriesUsingSeleniumVkWalker(seleniumVkWalker, stories, vkBotGroupDetails)
         } catch (e: Exception) {
             throw e
         } finally {
@@ -63,17 +61,18 @@ class StoryForwardingService (
 
     private fun forwardStoriesUsingSeleniumVkWalker(
         seleniumVkWalker: SeleniumVkWalker,
-        stories: MutableList<Story>
+        stories: MutableList<Story>,
+        vkBotGroupDetails: VkGroupDetailsEntity
     ) {
         loginIntoVkWith2Attempts(seleniumVkWalker)
         val storyChunks = divideStoriesOnChunks(stories)
         storyChunks.forEachIndexed { index, storyChunk ->
-            forwardStoryChunk(index, storyChunk, seleniumVkWalker)
+            forwardStoryChunk(index, storyChunk, seleniumVkWalker, vkBotGroupDetails)
         }
     }
 
     private fun retrieveStories(vkBotGroupDetails: VkGroupDetailsEntity): MutableList<Story>? {
-        val feedItems = vkBotService.retrieveFeedItems(vkGroupId)
+        val feedItems = vkBotService.retrieveFeedItems(vkBotGroupDetails.vkGroupId)
         val availableStoriesWithVideos = getFilteredAvailableStoriesWithVideos(feedItems)
         if (availableStoriesWithVideos.isEmpty()) {
             logger.debug { "There are no available stories with videos" }
@@ -105,14 +104,15 @@ class StoryForwardingService (
     private fun forwardStoryChunk(
         index: Int,
         storyChunk: MutableList<Story>,
-        seleniumVkWalker: SeleniumVkWalker
+        seleniumVkWalker: SeleniumVkWalker,
+        vkBotGroupDetails: VkGroupDetailsEntity
     ) {
         logger.debug { "About to forward story chunk $index of ${storyChunk.size} elements" }
         seleniumVkWalker.downloadStoryVideosInCache(storyChunk)
-        sendStoryVideosFromCacheToTg()
+        sendStoryVideosFromCacheToTg(vkBotGroupDetails.tgChannelId)
 
         val lastStoryChunkLocalDateTime = getLastStoryLocalDateTime(storyChunk)
-        saveLastStoryLocalDateTime(lastStoryChunkLocalDateTime)
+        saveLastStoryLocalDateTime(lastStoryChunkLocalDateTime, vkBotGroupDetails.vkGroupId)
         logger.debug { "Story chunk forwarded" }
     }
 
@@ -137,13 +137,13 @@ class StoryForwardingService (
             .filter { story -> story.canSee() }
             .toList()
 
-    private fun sendStoryVideosFromCacheToTg() {
+    private fun sendStoryVideosFromCacheToTg(tgTargetId: String) {
         val storyVideoPaths = cacheService.listFilesInCache()
         for (storyVideoPath in storyVideoPaths) {
             logger.debug { "Found item in cache $storyVideoPath" }
             val storyVideoFile = File(storyVideoPath)
             if (storyVideoFile.exists()) {
-                tgService.sendVideo(storyVideoFile, null)
+                tgService.sendVideo(storyVideoFile, null, tgTargetId)
             } else {
                 println("Failed to download video")
             }
@@ -158,8 +158,8 @@ class StoryForwardingService (
             TimeZone.getTimeZone(ZINE_ID).toZoneId()
         )
 
-    private fun saveLastStoryLocalDateTime(lastStoryLocalDateTime: LocalDateTime) {
-        val vkBotGroupDetails = vkGroupDetailsRepository.findByGroupId(vkGroupId)
+    private fun saveLastStoryLocalDateTime(lastStoryLocalDateTime: LocalDateTime, vkGroupId: Long) {
+        val vkBotGroupDetails = vkGroupDetailsRepository.findByVkGroupId(vkGroupId)
             ?: throw DbUnexpectedResponseException("Failed to retrieve vk group details")
 
         vkBotGroupDetails.lastForwardedStoryDateTime = lastStoryLocalDateTime

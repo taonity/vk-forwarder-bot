@@ -10,12 +10,13 @@ open class VkGroupDetailsEntity (
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "default_generator")
     open var id: Long? = null,
-    open var groupId: Long?,
+    open var vkGroupId: Long,
+    open var tgChannelId: String,
     open var lastForwardedPostDateTime: LocalDateTime? = null,
     open var lastForwardedStoryDateTime: LocalDateTime? = null
 ) {
     override fun toString(): String {
-        return "VkGroupDetails(id=$id, groupId=$groupId, lastForwardedPostDateTime=$lastForwardedPostDateTime)"
+        return "VkGroupDetails(id=$id, groupId=$vkGroupId, lastForwardedPostDateTime=$lastForwardedPostDateTime)"
     }
 
 }
