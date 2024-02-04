@@ -20,8 +20,6 @@ import org.telegram.telegrambots.meta.api.objects.media.InputMediaVideo
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException
 import java.io.File
 import java.net.URL
-import java.time.Duration
-import java.time.Instant
 
 private val logger = KotlinLogging.logger {}
 
@@ -46,21 +44,16 @@ class TgBotService(
             .medias(inputMedias)
             .build()
 
-        val uploadingStartTime = Instant.now()
-
         tgMessageSendingRateLimiter.acquireTokensAndRun(inputMedias.size) {
             try {
                 tgBot.execute(sendMediaGroup)
             } catch (e: TelegramApiException) {
-                val videoDownloadingDuration = Duration.between(uploadingStartTime, Instant.now()).toSeconds()
                 throw TgUnexpectedResponseException(
-                    "Failed to upload media group with uploading duration of $videoDownloadingDuration sec", e
+                    "Failed to upload media group", e
                 )
             }
         }
 
-        val videoDownloadingDuration = Duration.between(uploadingStartTime, Instant.now()).toSeconds()
-        logger.debug { "Media group have been uploaded with uploading duration of $videoDownloadingDuration sec" }
         cacheService.clearCache()
     }
 
@@ -102,21 +95,15 @@ class TgBotService(
         }
 
         val sendVideo = sendVideoBuilder.build()
-        val uploadingStartTime = Instant.now()
         tgMessageSendingRateLimiter.acquireTokensAndRun {
             try {
                 tgBot.execute(sendVideo)
             } catch (e: TelegramApiException) {
-                val videoDownloadingDuration = Duration.between(uploadingStartTime, Instant.now()).toSeconds()
-                throw TgUnexpectedResponseException(
-                    "Failed to upload video with uploading duration of $videoDownloadingDuration sec",
-                    e
-                )
+                throw TgUnexpectedResponseException("Failed to upload video", e)
             }
         }
 
-        val videoDownloadingDuration = Duration.between(uploadingStartTime, Instant.now()).toSeconds()
-        logger.debug { "Video have been uploaded with uploading duration of $videoDownloadingDuration sec" }
+        logger.debug { "Video have been uploaded" }
     }
 
     private fun downloadVideo(video: Video) : File? {

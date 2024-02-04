@@ -11,7 +11,6 @@ import org.taonity.vkforwarderbot.tg.TgBotService
 import org.taonity.vkforwarderbot.vk.VkBotService
 import org.taonity.vkforwarderbot.vk.VkGroupDetailsEntity
 import org.taonity.vkforwarderbot.vk.VkGroupDetailsRepository
-import java.time.Duration
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -38,10 +37,8 @@ class PostForwardingService (
         logger.debug { "${photoAndVideoPosts.size} posts are ready to forward" }
 
         for (post in photoAndVideoPosts) {
-            val forwardingStartTime = Instant.now()
             forwardPost(post, vkBotGroupDetails.tgChannelId)
-            val postForwardingDuration = Duration.between(forwardingStartTime, Instant.now()).toSeconds()
-            logger.debug { "Post have been forwarded with time elapsed $postForwardingDuration sec" }
+            logger.debug { "Post have been forwarded" }
         }
 
         saveLastPostLocalDateTime(lastPostLocalDateTime, vkBotGroupDetails.vkGroupId)

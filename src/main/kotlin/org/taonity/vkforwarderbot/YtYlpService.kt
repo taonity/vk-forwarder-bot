@@ -5,8 +5,6 @@ import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.io.InputStreamReader
-import java.time.Duration
-import java.time.Instant
 import java.util.stream.Collectors
 
 
@@ -51,15 +49,12 @@ class YtYlpService(
     }
 
     private fun waitForVideoToDownload(process: Process) {
-        val downloadingStartTime = Instant.now()
-
         // TODO: find a better way to do the waiting
         InputStreamReader(process.inputStream).use { inputStreamReader ->
             while (inputStreamReader.read() >= 0) {
             }
         }
 
-        val videoDownloadingDuration = Duration.between(downloadingStartTime, Instant.now()).toSeconds()
-        logger.debug { "Finish downloading the video with downloading duration of $videoDownloadingDuration sec" }
+        logger.debug { "Finish downloading the video" }
     }
 }
