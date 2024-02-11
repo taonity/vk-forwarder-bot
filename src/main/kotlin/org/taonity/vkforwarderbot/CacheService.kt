@@ -39,4 +39,12 @@ class CacheService(
             .collect(Collectors.toSet())
         }
     }
+
+    fun listMp4FilesInCache(): Set<String> {
+        val regex = Regex("""^.+\.mp4$""")
+        return listFilesInCache()
+            .stream()
+            .filter { regex.matches(it) }
+            .collect(Collectors.toSet())
+    }
 }

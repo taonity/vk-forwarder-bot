@@ -14,6 +14,7 @@ import org.taonity.vkforwarderbot.vk.VkGroupDetailsEntity
 import org.taonity.vkforwarderbot.vk.VkGroupDetailsRepository
 import org.taonity.vkforwarderbot.vk.selenium.SeleniumService
 import org.taonity.vkforwarderbot.vk.selenium.SeleniumVkWalker
+import org.taonity.vkforwarderbot.vk.selenium.StoryVideoDownloader
 import java.io.File
 import java.time.Instant
 import java.time.LocalDateTime
@@ -50,6 +51,7 @@ class StoryForwardingService (
 
     private fun forwardStories(stories: MutableList<Story>, vkBotGroupDetails: VkGroupDetailsEntity) {
         val seleniumVkWalker = seleniumService.buildVkWalker()
+        // TODO: refactor to use several groups
         try {
             forwardStoriesUsingSeleniumVkWalker(seleniumVkWalker, stories, vkBotGroupDetails)
         } catch (e: Exception) {
@@ -69,6 +71,7 @@ class StoryForwardingService (
         storyChunks.forEachIndexed { index, storyChunk ->
             forwardStoryChunk(index, storyChunk, seleniumVkWalker, vkBotGroupDetails)
         }
+        StoryVideoDownloader.clearUrlsOfDownloadingVideos()
     }
 
     private fun retrieveStories(vkBotGroupDetails: VkGroupDetailsEntity): MutableList<Story>? {
@@ -107,7 +110,7 @@ class StoryForwardingService (
         seleniumVkWalker: SeleniumVkWalker,
         vkBotGroupDetails: VkGroupDetailsEntity
     ) {
-        logger.debug { "About to forward story chunk $index of ${storyChunk.size} elements" }
+        logger.debug { "About to forward story chunk ${index + 1} that contains ${storyChunk.size} elements" }
         seleniumVkWalker.downloadStoryVideosInCache(storyChunk)
         sendStoryVideosFromCacheToTg(vkBotGroupDetails.tgChannelId)
 
@@ -138,7 +141,7 @@ class StoryForwardingService (
             .toList()
 
     private fun sendStoryVideosFromCacheToTg(tgTargetId: String) {
-        val storyVideoPaths = cacheService.listFilesInCache()
+        val storyVideoPaths = cacheService.listMp4FilesInCache()
         for (storyVideoPath in storyVideoPaths) {
             logger.debug { "Found item in cache $storyVideoPath" }
             val storyVideoFile = File(storyVideoPath)

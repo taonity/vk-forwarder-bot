@@ -35,34 +35,12 @@ class SeleniumVkWalker (
     }
 
     fun downloadStoryVideosInCache(stories: MutableList<Story>) {
-        val usedSrcSet = HashSet<String>()
-        var storyDownloadFails = 0
-        for (story in stories) {
-            val storyLink = "https://vk.com/feed?w=story${story.ownerId}_${story.id}%2Ffeed"
-            logger.debug { "About to go to $storyLink" }
-            logger.debug { "Detail link is ${story.link}" }
-            driver.get(storyLink)
-            logger.debug { "Page loaded" }
-            try {
-                val videoUrl: String? = retrieveVideoUrl(wait, usedSrcSet)
-                logger.debug { "Video URL retrieved $videoUrl" }
-
-                downloadVideo(videoUrl, driver, usedSrcSet)
-                logger.debug { "Video downloaded" }
-            } catch (e: TimeoutException) {
-                storyDownloadFails++
-                if(storyDownloadFails == 3) {
-                    throw e
-                }
-                logger.debug { "Failed to download story, fail $storyDownloadFails" }
-            }
-
-        }
-        Thread.sleep(5000)
+        StoryVideoDownloader(driver, wait, cacheDirPath).downloadStoryVideosInCache(stories)
     }
 
     fun quit() {
-        driver.quit();
+        driver.close()
+        driver.quit()
     }
 
     private fun buildFirefoxDriver(): WebDriver {
@@ -80,7 +58,7 @@ class SeleniumVkWalker (
     }
 
     private fun buildFluentWait(): FluentWait<WebDriver> =
-        FluentWait<WebDriver>(driver)
+        FluentWait(driver)
             .withTimeout(Duration.ofSeconds(20))
             .pollingEvery(Duration.ofSeconds(2))
             .ignoring(NoSuchElementException::class.java, ElementNotInteractableException::class.java)
@@ -128,31 +106,5 @@ class SeleniumVkWalker (
             true
         }
         logger.debug { "Top profile link loaded" }
-    }
-
-
-    private fun retrieveVideoUrl(
-        wait: Wait<WebDriver>,
-        usedSrcSet: HashSet<String>
-    ): String? {
-        var videoUrl: String? = null
-        wait.until { d: WebDriver? ->
-            val shortElement = d!!.findElement(By.cssSelector("video"))
-            videoUrl = shortElement.getAttribute("src")
-            !usedSrcSet.contains(videoUrl)
-        }
-        return videoUrl
-    }
-
-    private fun downloadVideo(
-        videoUrl: String?,
-        driver: WebDriver,
-        usedSrcSet: HashSet<String>
-    ) {
-        if (!videoUrl.isNullOrBlank()) {
-            driver.get(videoUrl)
-            Thread.sleep(5000)
-            usedSrcSet.add(videoUrl)
-        }
     }
 }
