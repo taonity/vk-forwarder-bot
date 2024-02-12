@@ -57,6 +57,7 @@ class StoryForwardingService (
         } catch (e: Exception) {
             throw e
         } finally {
+            // TODO: causes Tried to run command without establishing a connection
             seleniumVkWalker.quit()
         }
     }

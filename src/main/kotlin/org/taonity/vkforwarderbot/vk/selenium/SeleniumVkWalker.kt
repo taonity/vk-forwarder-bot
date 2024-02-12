@@ -39,7 +39,6 @@ class SeleniumVkWalker (
     }
 
     fun quit() {
-        driver.close()
         driver.quit()
     }
 
