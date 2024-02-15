@@ -58,7 +58,7 @@ class SeleniumVkWalker (
 
     private fun buildFluentWait(): FluentWait<WebDriver> =
         FluentWait(driver)
-            .withTimeout(Duration.ofSeconds(20))
+            .withTimeout(Duration.ofSeconds(60))
             .pollingEvery(Duration.ofSeconds(2))
             .ignoring(NoSuchElementException::class.java, ElementNotInteractableException::class.java)
 
@@ -106,4 +106,5 @@ class SeleniumVkWalker (
         }
         logger.debug { "Top profile link loaded" }
     }
+
 }
