@@ -50,6 +50,13 @@ class SeleniumVkWalker (
         firefoxOptions.setPageLoadStrategy(PageLoadStrategy.NONE)
         firefoxOptions.setProfile(firefoxProfile)
         firefoxOptions.addArguments("-headless", "--window-size=1920,1080")
+        firefoxOptions.addArguments("--start-maximized")
+        firefoxOptions.addArguments("--disable-infobars")
+        firefoxOptions.addArguments("--disable-extensions")
+        firefoxOptions.addArguments("--no-sandbox")
+        firefoxOptions.addArguments("--disable-application-cache")
+        firefoxOptions.addArguments("--disable-gpu")
+        firefoxOptions.addArguments("--disable-dev-shm-usage")
         if (!browserLogFileEnabled) {
             System.setProperty(FirefoxDriver.SystemProperty.BROWSER_LOGFILE, "/dev/null")
         }
