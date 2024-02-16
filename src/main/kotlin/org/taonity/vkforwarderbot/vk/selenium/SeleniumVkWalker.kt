@@ -49,7 +49,7 @@ class SeleniumVkWalker (
         val firefoxOptions = FirefoxOptions()
         firefoxOptions.setPageLoadStrategy(PageLoadStrategy.NONE)
         firefoxOptions.setProfile(firefoxProfile)
-        firefoxOptions.addArguments("-headless", "--window-size=1920,1080")
+        firefoxOptions.addArguments("-headless", "--window-size=1280,720")
         firefoxOptions.addArguments("--start-maximized")
         firefoxOptions.addArguments("--disable-infobars")
         firefoxOptions.addArguments("--disable-extensions")
