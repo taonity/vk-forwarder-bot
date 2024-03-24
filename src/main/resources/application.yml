@@ -19,11 +19,14 @@ forwarder:
     password: ${FORWARDER_VK_PASSWORD}
     selenium:
       browser-log-file-enabled: false
+      tmp-dir-cleaning-enabled: ${FORWARDER_VK_SELENIUM_TMP_DIR_CLEANING_ENABLED:false}
   tg:
     token: ${FORWARDER_TG_TOKEN}
     bot-username: ${FORWARDER_TG_BOT_USERNAME}
   cache-dir-path: ${FORWARDER_CACHE_DIR_PATH:cache}
   yt-ylp-file-path: ${FORWARDER_YT_YLP_FILE_PATH:src/dev/yt-dlp.exe}
+  debug:
+    max-stories-to-process: 50
 
 
 

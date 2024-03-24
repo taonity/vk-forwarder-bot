@@ -1,0 +1,16 @@
+---
+
+postgres-url: jdbc:postgresql://${POSTGRES_ADDRESS:localhost}:${POSTGRES_PORT:5433}/${POSTGRES_DB:vk_forwarder_bot}
+
+spring:
+  datasource:
+    url: ${postgres-url}
+    username: ${POSTGRES_APP_USER:d}
+    password: ${POSTGRES_APP_PASSWORD:d}
+
+forwarder:
+  at:
+    vk:
+      token: vk1.a.ba0S2riE8j2TtehMCLFd39Jez8LwYoQ8VWN0pjV_W_A5KuXf7nh9DAm79vEW4EhhNGNAXhunKLtZ6fwuKU3aw5PL0aBrmo4mudqggC9TrpmEIu9w3LvLGHXBodAP9fdGjDSwNG6W3Ofpgn_EWXKtFxUj6g-m0iNi83xZ-2XVBaK-sOajrrUdx1OWW9bATAi959m83Afnx1hnWE5hp3yd_g
+      user-id: 840295095
+

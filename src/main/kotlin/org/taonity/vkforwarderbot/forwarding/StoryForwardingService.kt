@@ -5,6 +5,7 @@ import com.vk.api.sdk.objects.stories.Story
 import com.vk.api.sdk.objects.stories.StoryType
 import mu.KotlinLogging
 import org.openqa.selenium.TimeoutException
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.taonity.vkforwarderbot.CacheService
 import org.taonity.vkforwarderbot.exceptions.DbUnexpectedResponseException
@@ -36,20 +37,25 @@ class StoryForwardingService (
     private val seleniumService: SeleniumService,
     private val vkGroupDetailsRepository: VkGroupDetailsRepository,
     private val cacheService: CacheService,
+    @Value("\${forwarder.debug.max-stories-to-process}") private val maxStoriesToProcess: Int
 ) {
     fun forwardStories(vkBotGroupDetails: VkGroupDetailsEntity) {
         val stories = retrieveStories(vkBotGroupDetails)
             ?: return
 
-        logger.debug { "${stories.size} stories are ready to forward" }
-        if (stories.isEmpty()) {
+        logger.debug { "${stories.size} stories before trim" }
+
+        val trimmedStories = stories.take(maxStoriesToProcess)
+
+        logger.debug { "${trimmedStories.size} stories are ready to forward" }
+        if (trimmedStories.isEmpty()) {
             return
         }
 
-        forwardStories(stories, vkBotGroupDetails)
+        forwardStories(trimmedStories, vkBotGroupDetails)
     }
 
-    private fun forwardStories(stories: MutableList<Story>, vkBotGroupDetails: VkGroupDetailsEntity) {
+    private fun forwardStories(stories: List<Story>, vkBotGroupDetails: VkGroupDetailsEntity) {
         val seleniumVkWalker = seleniumService.buildVkWalker()
         // TODO: refactor to use several groups
         try {
@@ -64,7 +70,7 @@ class StoryForwardingService (
 
     private fun forwardStoriesUsingSeleniumVkWalker(
         seleniumVkWalker: SeleniumVkWalker,
-        stories: MutableList<Story>,
+        stories: List<Story>,
         vkBotGroupDetails: VkGroupDetailsEntity
     ) {
         loginIntoVkWith2Attempts(seleniumVkWalker)
@@ -98,7 +104,7 @@ class StoryForwardingService (
         }
     }
 
-    private fun divideStoriesOnChunks(stories: MutableList<Story>): MutableCollection<MutableList<Story>> {
+    private fun divideStoriesOnChunks(stories: List<Story>): MutableCollection<MutableList<Story>> {
         val counter = AtomicInteger()
         return stories.stream()
             .collect(Collectors.groupingBy { counter.getAndIncrement() / STORY_CHUNK_SIZE })
@@ -149,7 +155,7 @@ class StoryForwardingService (
             if (storyVideoFile.exists()) {
                 tgService.sendVideo(storyVideoFile, null, tgTargetId)
             } else {
-                println("Failed to download video")
+                logger.error{ "Failed to download video, video not found in cache" }
             }
         }
         cacheService.clearCache()

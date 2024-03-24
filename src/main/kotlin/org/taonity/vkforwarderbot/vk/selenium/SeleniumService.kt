@@ -10,8 +10,9 @@ class SeleniumService (
     @Value("\${forwarder.vk.username}") private val vkUsername: String,
     @Value("\${forwarder.vk.password}") private val vkPassword: String,
     @Value("\${forwarder.vk.selenium.browser-log-file-enabled}") private val browserLogFileEnabled: Boolean,
+    @Value("\${forwarder.vk.selenium.tmp-dir-cleaning-enabled}") private val tmpDirCleaningEnabled: Boolean,
 ) {
     fun buildVkWalker() : SeleniumVkWalker {
-        return SeleniumVkWalker(vkUsername, vkPassword, cacheService.cacheDirPath, browserLogFileEnabled)
+        return SeleniumVkWalker(vkUsername, vkPassword, cacheService.cacheDirPath, browserLogFileEnabled, tmpDirCleaningEnabled)
     }
 }

@@ -2,6 +2,7 @@ package org.taonity.vkforwarderbot.vk.selenium
 
 import com.vk.api.sdk.objects.stories.Story
 import mu.KotlinLogging
+import org.apache.commons.io.FileUtils
 import org.openqa.selenium.*
 import org.openqa.selenium.firefox.FirefoxDriver
 import org.openqa.selenium.firefox.FirefoxOptions
@@ -17,7 +18,8 @@ class SeleniumVkWalker (
     private val vkUsername: String,
     private val vkPassword: String,
     private val cacheDirPath: String,
-    private val browserLogFileEnabled: Boolean
+    private val browserLogFileEnabled: Boolean,
+    private val tmpDirCleaningEnabled: Boolean
 ) {
     private lateinit var driver: WebDriver
     private lateinit var wait: Wait<WebDriver>
@@ -40,6 +42,18 @@ class SeleniumVkWalker (
 
     fun quit() {
         driver.quit()
+        logger.debug { "Driver have been quit" }
+        cleanTmpDirIfEnabled()
+
+    }
+
+    private fun cleanTmpDirIfEnabled() {
+        if (tmpDirCleaningEnabled) {
+            FileUtils.cleanDirectory(File("/tmp"))
+            logger.debug { "/tmp dir have been cleaned" }
+        } else {
+            logger.debug { "/tmp dir cleaning disabled" }
+        }
     }
 
     private fun buildFirefoxDriver(): WebDriver {
@@ -113,5 +127,6 @@ class SeleniumVkWalker (
         }
         logger.debug { "Top profile link loaded" }
     }
+
 
 }

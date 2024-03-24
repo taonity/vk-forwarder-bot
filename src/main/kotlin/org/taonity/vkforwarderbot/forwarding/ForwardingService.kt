@@ -56,7 +56,7 @@ class ForwardingService (
         try {
             forwardGroupContentIfEnabled(vkBotGroupDetailsEntity)
         } catch (e: Exception) {
-            logger.error { "Error occurred while forwarding process: ${e.message}" }
+            logger.error(e) { "Error occurred while forwarding process" }
             cacheService.clearCache()
         }
         logger.debug { "Finish forwarding for the group" }
