@@ -79,8 +79,8 @@ class SeleniumVkWalker (
 
     private fun buildFluentWait(): FluentWait<WebDriver> =
         FluentWait(driver)
-            .withTimeout(Duration.ofSeconds(60))
-            .pollingEvery(Duration.ofSeconds(2))
+            .withTimeout(Duration.ofSeconds(120))
+            .pollingEvery(Duration.ofSeconds(3))
             .ignoring(NoSuchElementException::class.java, ElementNotInteractableException::class.java)
 
     private fun enterPhoneNumber() {
