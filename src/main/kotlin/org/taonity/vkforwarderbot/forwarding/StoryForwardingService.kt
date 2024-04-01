@@ -64,7 +64,9 @@ class StoryForwardingService (
             throw e
         } finally {
             // TODO: causes Tried to run command without establishing a connection
+            logger.debug { "Web driver quit initiated" }
             seleniumVkWalker.quit()
+            logger.debug { "Web driver quit complete" }
         }
     }
 
