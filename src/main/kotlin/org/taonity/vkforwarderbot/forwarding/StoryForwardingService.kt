@@ -67,10 +67,10 @@ class StoryForwardingService (
             logger.debug { "Web driver quit initiated" }
             try {
                 seleniumVkWalker.quit()
+                logger.debug { "Web driver quit complete" }
             } catch (e: Exception) {
                 logger.error(e) { "Web driver quit failed" }
             }
-            logger.debug { "Web driver quit complete" }
         }
     }
 
