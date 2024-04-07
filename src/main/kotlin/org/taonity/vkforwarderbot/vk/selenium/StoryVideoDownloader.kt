@@ -29,7 +29,7 @@ class StoryVideoDownloader(
         }
     }
 
-    fun downloadStoryVideosInCache(stories: MutableList<Story>) {
+    fun downloadStoryVideosInCache(stories: List<Story>) {
         for (story in stories) {
             tryToStartDownloadStoryVideos(story)
         }

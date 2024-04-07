@@ -36,7 +36,7 @@ class SeleniumVkWalker (
         waitForTopProfileLinkElementToLoad()
     }
 
-    fun downloadStoryVideosInCache(stories: MutableList<Story>) {
+    fun downloadStoryVideosInCache(stories: List<Story>) {
         StoryVideoDownloader(driver, wait, cacheDirPath).downloadStoryVideosInCache(stories)
     }
 

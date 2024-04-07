@@ -87,7 +87,7 @@ class StoryForwardingService (
         StoryVideoDownloader.clearUrlsOfDownloadingVideos()
     }
 
-    private fun retrieveStories(vkBotGroupDetails: VkGroupDetailsEntity): MutableList<Story>? {
+    private fun retrieveStories(vkBotGroupDetails: VkGroupDetailsEntity): List<Story>? {
         val feedItems = vkBotService.retrieveFeedItems(vkBotGroupDetails.vkGroupId)
         val availableStoriesWithVideos = getFilteredAvailableStoriesWithVideos(feedItems)
         if (availableStoriesWithVideos.isEmpty()) {
@@ -110,7 +110,7 @@ class StoryForwardingService (
         }
     }
 
-    private fun divideStoriesOnChunks(stories: List<Story>): MutableCollection<MutableList<Story>> {
+    private fun divideStoriesOnChunks(stories: List<Story>): MutableCollection<List<Story>> {
         val counter = AtomicInteger()
         return stories.stream()
             .collect(Collectors.groupingBy { counter.getAndIncrement() / STORY_CHUNK_SIZE })
@@ -119,7 +119,7 @@ class StoryForwardingService (
 
     private fun forwardStoryChunk(
         index: Int,
-        storyChunk: MutableList<Story>,
+        storyChunk: List<Story>,
         seleniumVkWalker: SeleniumVkWalker,
         vkBotGroupDetails: VkGroupDetailsEntity
     ) {
@@ -133,20 +133,20 @@ class StoryForwardingService (
     }
 
     private fun filterStoriesAfterGivenTime(
-        availableStoriesWithVideos: MutableList<Story>,
+        availableStoriesWithVideos: List<Story>,
         postDateTimeToBeginFrom: LocalDateTime
-    ): MutableList<Story> = availableStoriesWithVideos.stream()
+    ): List<Story> = availableStoriesWithVideos.stream()
         .filter { story -> epochMilliToLocalDateTime(story.date).isAfter(postDateTimeToBeginFrom) }
         .toList()
 
-    private fun getLastStoryLocalDateTime(stories: MutableList<Story>): LocalDateTime {
+    private fun getLastStoryLocalDateTime(stories: List<Story>): LocalDateTime {
         val lastStoryEpochMilli = stories.stream()
             .sorted(Comparator.comparing { story -> story.date })
             .toList().last().date
         return epochMilliToLocalDateTime(lastStoryEpochMilli)
     }
 
-    private fun getFilteredAvailableStoriesWithVideos(feedItems: MutableList<FeedItem>): MutableList<Story> =
+    private fun getFilteredAvailableStoriesWithVideos(feedItems: List<FeedItem>): List<Story> =
         feedItems.stream()
             .flatMap { storyBlock -> storyBlock.stories.stream() }
             .filter { story -> story.type == StoryType.VIDEO }

@@ -12,14 +12,14 @@ class VkBotService (
     private val vkApiClient: VkApiClient,
     private val userActor: UserActor
 ) {
-    fun retrieveWallItems(vkGroupId: Long): MutableList<WallItem> = vkApiClient.wall()
+    fun retrieveWallItems(vkGroupId: Long): List<WallItem> = vkApiClient.wall()
         .get(userActor)
         .ownerId(vkGroupId)
         .execute()
         .items
         ?: throw VkUnexpectedResponseException("Failed to retrieve post items")
 
-    fun retrieveFeedItems(vkGroupId: Long): MutableList<FeedItem> = vkApiClient.stories()
+    fun retrieveFeedItems(vkGroupId: Long): List<FeedItem> = vkApiClient.stories()
         .getV5113(userActor)
         .ownerId(vkGroupId)
         .execute()

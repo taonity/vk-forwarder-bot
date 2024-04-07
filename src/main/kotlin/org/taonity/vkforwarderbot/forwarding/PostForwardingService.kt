@@ -60,7 +60,9 @@ class PostForwardingService (
         when (photoOrVideoAttachment.type) {
             WallpostAttachmentType.PHOTO -> tgService.sendPhoto(photoOrVideoAttachment.photo, tgTargetId)
             WallpostAttachmentType.VIDEO -> tgService.sendVideo(photoOrVideoAttachment.video, tgTargetId)
-            else -> {}
+            else -> {
+                logger.warn { "Wall post attachment's type is nor photo, nor video" }
+            }
         }
     }
 
@@ -73,9 +75,9 @@ class PostForwardingService (
     }
 
     private fun filterPostsAfterGivenTimeWithPhotosOrVideos(
-        posts: MutableList<WallItem>,
+        posts: List<WallItem>,
         postDateTimeToBeginFrom: LocalDateTime
-    ): MutableList<WallItem> {
+    ): List<WallItem> {
         val photoAndVideoPosts = posts.stream()
             .filter { item -> epochMilliToLocalDateTime(item.date).isAfter(postDateTimeToBeginFrom) }
             .filter { item ->
@@ -85,7 +87,7 @@ class PostForwardingService (
         return photoAndVideoPosts
     }
 
-    private fun retrieveLastGroupUnpinnedPosts(vkGroupId: Long): MutableList<WallItem> {
+    private fun retrieveLastGroupUnpinnedPosts(vkGroupId: Long): List<WallItem> {
         return vkBotService.retrieveWallItems(vkGroupId)
             .stream()
             .filter { item -> !item.isPinned() }
@@ -100,7 +102,7 @@ class PostForwardingService (
         lastForwardedPostDateTime!!
     }
 
-    private fun getLastPostLocalDateTime(posts: MutableList<WallItem>): LocalDateTime {
+    private fun getLastPostLocalDateTime(posts: List<WallItem>): LocalDateTime {
         val lastPostEpochMilli = posts[0].date
         return epochMilliToLocalDateTime(lastPostEpochMilli)
     }
