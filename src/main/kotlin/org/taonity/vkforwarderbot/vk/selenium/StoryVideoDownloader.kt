@@ -14,7 +14,7 @@ import java.io.FileFilter
 import java.time.Duration
 import java.util.regex.Pattern
 
-private val logger = KotlinLogging.logger {}
+private val LOGGER = KotlinLogging.logger {}
 
 class StoryVideoDownloader(
     private var driver: WebDriver,
@@ -39,7 +39,7 @@ class StoryVideoDownloader(
 
     private fun tryToWaitUntilNoPartVideosLeftInCache() {
         val fluentWait = buildFluentWaitForParts()
-        logger.debug { "About to wait for videos to download" }
+        LOGGER.debug { "About to wait for videos to download" }
         var unexpectedFiles: Array<out File> = arrayOf()
         try {
             // TODO: for some reason on timeout waits more then needed
@@ -47,10 +47,10 @@ class StoryVideoDownloader(
                 unexpectedFiles = findFilesInCacheByRegex(it) ?: arrayOf()
                 unexpectedFiles.isEmpty()
             }
-            logger.debug { "All files have been downloaded" }
+            LOGGER.debug { "All files have been downloaded" }
         } catch (e: TimeoutException) {
             val unexpectedFileNames = unexpectedFiles.toList().stream().map { it.name }.toList()
-            logger.error { "Failed to download files. Files $unexpectedFileNames are not expected. $e" }
+            LOGGER.error { "Failed to download files. Files $unexpectedFileNames are not expected. $e" }
         }
     }
 
@@ -64,16 +64,16 @@ class StoryVideoDownloader(
         try {
             startDownloadStoryVideosIfNoMuchExceptions(story)
         } catch (e: StoryVideoException) {
-            logger.error { e }
+            LOGGER.error { e }
         }
     }
 
     private fun startDownloadStoryVideosIfNoMuchExceptions(story: Story) {
         val storyLink = "https://vk.com/feed?w=story${story.ownerId}_${story.id}%2Ffeed"
-        logger.debug { "About to go to $storyLink" }
-        logger.debug { "Detail link is ${story.link}" }
+        LOGGER.debug { "About to go to $storyLink" }
+        LOGGER.debug { "Detail link is ${story.link}" }
         driver.get(storyLink)
-        logger.debug { "Page loaded" }
+        LOGGER.debug { "Page loaded" }
         try {
             startDownloadUniqueVideo()
         } catch (e: TimeoutException) {
@@ -86,7 +86,7 @@ class StoryVideoDownloader(
         if (storyDownloadFails == 3) {
             throw e
         }
-        logger.debug { "Failed to download story, fail $storyDownloadFails" }
+        LOGGER.debug { "Failed to download story, fail $storyDownloadFails" }
     }
 
     private fun startDownloadUniqueVideo() {
@@ -95,12 +95,12 @@ class StoryVideoDownloader(
             throw StoryVideoException("Video URL is null or blank")
         }
 
-        logger.debug { "Video URL retrieved $videoUrl" }
+        LOGGER.debug { "Video URL retrieved $videoUrl" }
 
         startDownloadingVideo(videoUrl)
         tryToWaitForStoryVideoDownloadToStart(videoUrl)
 
-        logger.debug { "Video started to download" }
+        LOGGER.debug { "Video started to download" }
         urlsOfDownloadingVideos.add(videoUrl)
     }
     private fun tryToWaitForStoryVideoDownloadToStart(videoUrl: String) {
@@ -114,7 +114,7 @@ class StoryVideoDownloader(
         try {
             fluentWait.until { existsInCacheByRegex(it) }
         } catch (e: TimeoutException) {
-            logger.error { "Timeout on waiting for story video to start downloading. $e" }
+            LOGGER.error { "Timeout on waiting for story video to start downloading. $e" }
         }
     }
 

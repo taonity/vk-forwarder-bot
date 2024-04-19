@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
-private val logger = KotlinLogging.logger {}
+private val LOGGER = KotlinLogging.logger {}
 private const val MESSAGE_PER_MINUTE = 20
 
 @Component
@@ -38,7 +38,7 @@ class TgMessageSendingRateLimiter {
         val totalSleepTime = calculateTotalSleepTime(timeNow, tokensLeft)
 
         if (totalSleepTime != 0L) {
-            logger.debug { "Rate limited, about to sleep for ${totalSleepTime / 1000.0} secs" }
+            LOGGER.debug { "Rate limited, about to sleep for ${totalSleepTime / 1000.0} secs" }
             Thread.sleep(totalSleepTime)
         }
     }
@@ -69,7 +69,7 @@ class TgMessageSendingRateLimiter {
     private fun getMillisFromNowUntilNexRefillTime(tokensLeft: Int, timeNow: LocalDateTime) =
         if (tokensLeft < 0) {
             val millisLeftUntilTokensRefill = ChronoUnit.MILLIS.between(timeNow, getNextTokenRefillTime())
-            logger.debug { "Not enough tokens, have to sleep for ${millisLeftUntilTokensRefill / 1000.0} secs" }
+            LOGGER.debug { "Not enough tokens, have to sleep for ${millisLeftUntilTokensRefill / 1000.0} secs" }
             millisLeftUntilTokensRefill
         } else {
             null
@@ -78,7 +78,7 @@ class TgMessageSendingRateLimiter {
     private fun getMillisFromNowUntilSecondsCircleEnd(timeNow: LocalDateTime) =
         if (getSecondCircleEndTime().isAfter(timeNow)) {
             val millisToWaitForSecondsCircleEnd = ChronoUnit.MILLIS.between(timeNow, getSecondCircleEndTime())
-            logger.debug { "Seconds circle is active, have to sleep for ${millisToWaitForSecondsCircleEnd / 1000.0} secs" }
+            LOGGER.debug { "Seconds circle is active, have to sleep for ${millisToWaitForSecondsCircleEnd / 1000.0} secs" }
             millisToWaitForSecondsCircleEnd
         } else {
             null
@@ -87,7 +87,7 @@ class TgMessageSendingRateLimiter {
     private fun refillTokensNow(timeNow: LocalDateTime?) {
         messageTokenBucket = MESSAGE_PER_MINUTE
         lastRefillTime = timeNow
-        logger.debug { "Messages tokens have been refilled" }
+        LOGGER.debug { "Messages tokens have been refilled" }
     }
 
     fun acquireTokensAndRun(runnable: Runnable) {

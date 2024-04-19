@@ -16,7 +16,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.*
 
-private val logger = KotlinLogging.logger {}
+private val LOGGER = KotlinLogging.logger {}
 private val ZINE_ID = ZoneId.of("UTC")
 private const val HOURS_TIME_PERIOD_TO_FORWARD_POSTS_IN = 1L
 
@@ -34,11 +34,11 @@ class PostForwardingService (
             calculatePostDateTimeToBeginFrom(vkBotGroupDetails.lastForwardedPostDateTime, lastPostLocalDateTime)
         val photoAndVideoPosts = filterPostsAfterGivenTimeWithPhotosOrVideos(posts, postDateTimeToBeginFrom)
 
-        logger.debug { "${photoAndVideoPosts.size} posts are ready to forward" }
+        LOGGER.debug { "${photoAndVideoPosts.size} posts are ready to forward" }
 
         for (post in photoAndVideoPosts) {
             forwardPost(post, vkBotGroupDetails.tgChannelId)
-            logger.debug { "Post have been forwarded" }
+            LOGGER.debug { "Post have been forwarded" }
         }
 
         saveLastPostLocalDateTime(lastPostLocalDateTime, vkBotGroupDetails.vkGroupId)
@@ -61,7 +61,7 @@ class PostForwardingService (
             WallpostAttachmentType.PHOTO -> tgService.sendPhoto(photoOrVideoAttachment.photo, tgTargetId)
             WallpostAttachmentType.VIDEO -> tgService.sendVideo(photoOrVideoAttachment.video, tgTargetId)
             else -> {
-                logger.warn { "Wall post attachment's type is nor photo, nor video" }
+                LOGGER.warn { "Wall post attachment's type is nor photo, nor video" }
             }
         }
     }

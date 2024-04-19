@@ -12,7 +12,7 @@ import org.openqa.selenium.support.ui.Wait
 import java.io.File
 import java.time.Duration
 
-private val logger = KotlinLogging.logger {}
+private val LOGGER = KotlinLogging.logger {}
 
 class SeleniumVkWalker (
     private val vkUsername: String,
@@ -27,7 +27,7 @@ class SeleniumVkWalker (
         driver = buildFirefoxDriver()
         wait = buildFluentWait()
 
-        logger.debug { "Start selenium vk session" }
+        LOGGER.debug { "Start selenium vk session" }
         driver.get("https://vk.com/")
         enterPhoneNumber()
         pressSignInButton()
@@ -42,7 +42,7 @@ class SeleniumVkWalker (
 
     fun quit() {
         driver.quit()
-        logger.debug { "Driver have been quit" }
+        LOGGER.debug { "Driver have been quit" }
         cleanTmpDirIfEnabled()
 
     }
@@ -50,9 +50,9 @@ class SeleniumVkWalker (
     private fun cleanTmpDirIfEnabled() {
         if (tmpDirCleaningEnabled) {
             FileUtils.cleanDirectory(File("/tmp"))
-            logger.debug { "/tmp dir have been cleaned" }
+            LOGGER.debug { "/tmp dir have been cleaned" }
         } else {
-            logger.debug { "/tmp dir cleaning disabled" }
+            LOGGER.debug { "/tmp dir cleaning disabled" }
         }
     }
 
@@ -89,7 +89,7 @@ class SeleniumVkWalker (
                 .sendKeys(vkUsername)
             true
         }
-        logger.debug { "Phone number entered" }
+        LOGGER.debug { "Phone number entered" }
     }
 
     private fun pressSignInButton() {
@@ -98,7 +98,7 @@ class SeleniumVkWalker (
                 .click()
             true
         }
-        logger.debug { "Sign in button pressed" }
+        LOGGER.debug { "Sign in button pressed" }
     }
 
     private fun enterPassword() {
@@ -108,7 +108,7 @@ class SeleniumVkWalker (
             passwordInput.sendKeys(vkPassword)
             true
         }
-        logger.debug { "Password entered" }
+        LOGGER.debug { "Password entered" }
     }
 
     private fun enterVkUiButton() {
@@ -117,7 +117,7 @@ class SeleniumVkWalker (
                 .click()
             true
         }
-        logger.debug { "Vk UI button pressed" }
+        LOGGER.debug { "Vk UI button pressed" }
     }
 
     private fun waitForTopProfileLinkElementToLoad() {
@@ -125,7 +125,7 @@ class SeleniumVkWalker (
             d!!.findElement(By.id("top_profile_link"))
             true
         }
-        logger.debug { "Top profile link loaded" }
+        LOGGER.debug { "Top profile link loaded" }
     }
 
 

@@ -1,4 +1,3 @@
 package org.taonity.vkforwarderbot.exceptions
 
-class VkUnexpectedResponseException(message: String) : RuntimeException(message) {
-}
+class VkUnexpectedResponseException(message: String) : RuntimeException(message)

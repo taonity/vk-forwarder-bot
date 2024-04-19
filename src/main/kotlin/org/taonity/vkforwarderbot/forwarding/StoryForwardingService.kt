@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.stream.Collectors
 
 
-private val logger = KotlinLogging.logger {}
+private val LOGGER = KotlinLogging.logger {}
 private val ZINE_ID = ZoneId.of("UTC")
 private const val HOURS_TIME_PERIOD_TO_FORWARD_POSTS_IN = 24L
 private const val STORY_CHUNK_SIZE = 3
@@ -43,11 +43,11 @@ class StoryForwardingService (
         val stories = retrieveStories(vkBotGroupDetails)
             ?: return
 
-        logger.debug { "${stories.size} stories before trim" }
+        LOGGER.debug { "${stories.size} stories before trim" }
 
         val trimmedStories = stories.take(maxStoriesToProcess)
 
-        logger.debug { "${trimmedStories.size} stories are ready to forward" }
+        LOGGER.debug { "${trimmedStories.size} stories are ready to forward" }
         if (trimmedStories.isEmpty()) {
             return
         }
@@ -64,12 +64,12 @@ class StoryForwardingService (
             throw e
         } finally {
             // TODO: causes Tried to run command without establishing a connection
-            logger.debug { "Web driver quit initiated" }
+            LOGGER.debug { "Web driver quit initiated" }
             try {
                 seleniumVkWalker.quit()
-                logger.debug { "Web driver quit complete" }
+                LOGGER.debug { "Web driver quit complete" }
             } catch (e: Exception) {
-                logger.error(e) { "Web driver quit failed" }
+                LOGGER.error(e) { "Web driver quit failed" }
             }
         }
     }
@@ -91,7 +91,7 @@ class StoryForwardingService (
         val feedItems = vkBotService.retrieveFeedItems(vkBotGroupDetails.vkGroupId)
         val availableStoriesWithVideos = getFilteredAvailableStoriesWithVideos(feedItems)
         if (availableStoriesWithVideos.isEmpty()) {
-            logger.debug { "There are no available stories with videos" }
+            LOGGER.debug { "There are no available stories with videos" }
             return null
         }
         val lastStoryLocalDateTime = getLastStoryLocalDateTime(availableStoriesWithVideos)
@@ -105,7 +105,7 @@ class StoryForwardingService (
         try {
             seleniumVkWalker.loginIntoVk()
         } catch (e: TimeoutException) {
-            logger.warn { "Timeout while downloading story videos in cache. Retry..." }
+            LOGGER.warn { "Timeout while downloading story videos in cache. Retry..." }
             seleniumVkWalker.loginIntoVk()
         }
     }
@@ -123,13 +123,13 @@ class StoryForwardingService (
         seleniumVkWalker: SeleniumVkWalker,
         vkBotGroupDetails: VkGroupDetailsEntity
     ) {
-        logger.debug { "About to forward story chunk ${index + 1} that contains ${storyChunk.size} elements" }
+        LOGGER.debug { "About to forward story chunk ${index + 1} that contains ${storyChunk.size} elements" }
         seleniumVkWalker.downloadStoryVideosInCache(storyChunk)
         sendStoryVideosFromCacheToTg(vkBotGroupDetails.tgChannelId)
 
         val lastStoryChunkLocalDateTime = getLastStoryLocalDateTime(storyChunk)
         saveLastStoryLocalDateTime(lastStoryChunkLocalDateTime, vkBotGroupDetails.vkGroupId)
-        logger.debug { "Story chunk forwarded" }
+        LOGGER.debug { "Story chunk forwarded" }
     }
 
     private fun filterStoriesAfterGivenTime(
@@ -156,12 +156,12 @@ class StoryForwardingService (
     private fun sendStoryVideosFromCacheToTg(tgTargetId: String) {
         val storyVideoPaths = cacheService.listMp4FilesInCache()
         for (storyVideoPath in storyVideoPaths) {
-            logger.debug { "Found item in cache $storyVideoPath" }
+            LOGGER.debug { "Found item in cache $storyVideoPath" }
             val storyVideoFile = File(storyVideoPath)
             if (storyVideoFile.exists()) {
                 tgService.sendVideo(storyVideoFile, null, tgTargetId)
             } else {
-                logger.error{ "Failed to download video, video not found in cache" }
+                LOGGER.error{ "Failed to download video, video not found in cache" }
             }
         }
         cacheService.clearCache()

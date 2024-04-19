@@ -10,7 +10,7 @@ import java.util.stream.Collectors
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.pathString
 
-private val logger = KotlinLogging.logger {}
+private val LOGGER = KotlinLogging.logger {}
 
 @Component
 class CacheService(
@@ -27,7 +27,7 @@ class CacheService(
     fun clearCache() {
         Files.list(Paths.get(cacheDirPath)).forEach { file ->
             file.deleteIfExists()
-            logger.debug { "File deleted if existed ${file.fileName}" }
+            LOGGER.debug { "File deleted if existed ${file.fileName}" }
         }
     }
 

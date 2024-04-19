@@ -6,7 +6,7 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.api.objects.Update
 
 @Component
-open class TgBot(
+class TgBot(
     @Value("\${forwarder.tg.token}") private val tgToken: String,
     @Value("\${forwarder.tg.bot-username}") private val tgBotUsername: String
 ): TelegramLongPollingBot(tgToken) {
@@ -16,5 +16,6 @@ open class TgBot(
     }
 
     override fun onUpdateReceived(update: Update?) {
+        /* no need */
     }
 }

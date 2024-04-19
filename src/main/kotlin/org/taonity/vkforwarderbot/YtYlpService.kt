@@ -8,7 +8,7 @@ import java.io.InputStreamReader
 import java.util.stream.Collectors
 
 
-private val logger = KotlinLogging.logger {}
+private val LOGGER = KotlinLogging.logger {}
 
 @Component
 class YtYlpService(
@@ -20,11 +20,11 @@ class YtYlpService(
 
     fun downloadVideoInCache(video: Video) : String? {
         val vkVideoUrl = "https://vk.com/video${video.ownerId}_${video.id}"
-        logger.debug { "Start downloading the video: $vkVideoUrl" }
+        LOGGER.debug { "Start downloading the video: $vkVideoUrl" }
 
         val ytDlpErrorLog = runDownloadingProcessAndWait(vkVideoUrl)
         if(ytDlpErrorLog.isNotEmpty()) {
-            logger.error { ytDlpErrorLog }
+            LOGGER.error { ytDlpErrorLog }
             return null
         }
 
@@ -55,6 +55,6 @@ class YtYlpService(
             }
         }
 
-        logger.debug { "Finish downloading the video" }
+        LOGGER.debug { "Finish downloading the video" }
     }
 }

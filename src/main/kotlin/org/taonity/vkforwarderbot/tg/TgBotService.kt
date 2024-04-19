@@ -21,7 +21,9 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException
 import java.io.File
 import java.net.URL
 
-private val logger = KotlinLogging.logger {}
+private val LOGGER = KotlinLogging.logger {}
+private const val MAX_VIDEO_DURATION = 300
+private const val MAX_VIDEO_SIZE = 50
 
 @Component
 class TgBotService(
@@ -30,8 +32,6 @@ class TgBotService(
     private val cacheService: CacheService,
     private val tgMessageSendingRateLimiter: TgMessageSendingRateLimiter
 ) {
-    private val MAX_VIDEO_DURATION = 300
-    private val MAX_VIDEO_SIZE = 50
 
     fun sendMediaGroup(post: WallItem, tgTargetId: String) {
         val inputMedias = post.attachments.stream()
@@ -72,7 +72,7 @@ class TgBotService(
             }
         }
 
-        logger.debug { "A photo have been forwarded" }
+        LOGGER.debug { "A photo have been forwarded" }
     }
 
     fun sendVideo(video: Video, tgTargetId: String) {
@@ -103,12 +103,12 @@ class TgBotService(
             }
         }
 
-        logger.debug { "Video have been uploaded" }
+        LOGGER.debug { "Video have been uploaded" }
     }
 
     private fun downloadVideo(video: Video) : File? {
         if (video.duration > MAX_VIDEO_DURATION) {
-            logger.debug { "Video with duration ${video.duration} sec is too long" }
+            LOGGER.debug { "Video with duration ${video.duration} sec is too long" }
             return null
         }
 
@@ -118,7 +118,7 @@ class TgBotService(
 
         val videoSizeInMb = bytesToMegabytes(file.length())
         if (videoSizeInMb >= MAX_VIDEO_SIZE) {
-            logger.debug { "Video with size $videoSizeInMb MB is too large" }
+            LOGGER.debug { "Video with size $videoSizeInMb MB is too large" }
             return null
         }
 
