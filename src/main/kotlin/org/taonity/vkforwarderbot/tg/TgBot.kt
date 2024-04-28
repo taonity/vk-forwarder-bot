@@ -15,7 +15,7 @@ class TgBot(
         return tgBotUsername
     }
 
-    override fun onUpdateReceived(update: Update?) {
-        /* no need */
+    override fun onUpdateReceived(update: Update) {
+        println(update.hasMessage())
     }
 }

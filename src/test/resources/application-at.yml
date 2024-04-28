@@ -9,8 +9,13 @@ spring:
     password: ${POSTGRES_APP_PASSWORD:d}
 
 forwarder:
-  at:
+  testing:
+    manual-trigger-password: 1234
+    tg:
+      bot:
+        token: ${FORWARDER_TESTING_TG_BOT_TOKEN}
+        username: ${FORWARDER_TESTING_TG_BOT_USERNAME} TaoLocalATBot
+      channel-id: ${FORWARDER_TESTING_TG_CHANNEL_ID}
     vk:
-      token: vk1.a.ba0S2riE8j2TtehMCLFd39Jez8LwYoQ8VWN0pjV_W_A5KuXf7nh9DAm79vEW4EhhNGNAXhunKLtZ6fwuKU3aw5PL0aBrmo4mudqggC9TrpmEIu9w3LvLGHXBodAP9fdGjDSwNG6W3Ofpgn_EWXKtFxUj6g-m0iNi83xZ-2XVBaK-sOajrrUdx1OWW9bATAi959m83Afnx1hnWE5hp3yd_g
-      user-id: 840295095
+      group-id: ${FORWARDER_TESTING_VK_GROUP_ID}
 

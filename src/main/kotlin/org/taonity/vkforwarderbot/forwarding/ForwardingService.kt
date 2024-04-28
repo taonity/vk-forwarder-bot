@@ -2,12 +2,10 @@ package org.taonity.vkforwarderbot.forwarding
 
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.taonity.vkforwarderbot.CacheService
 import org.taonity.vkforwarderbot.vk.VkGroupDetailsEntity
 import org.taonity.vkforwarderbot.vk.VkGroupDetailsRepository
-import java.util.concurrent.TimeUnit
 
 private val LOGGER = KotlinLogging.logger {}
 
@@ -22,9 +20,42 @@ class ForwardingService (
     @Value("\${forwarder.stories.enabled:true}") val storiesEnabled: Boolean,
     @Value("\${forwarder.stories.whitelist:}") val storiesWhitelist: Set<Long>,
     ) {
-    @Scheduled(fixedDelay = 60, timeUnit = TimeUnit.MINUTES)
-    fun forwardGroupsContent() {
-        LOGGER.debug { "Forwarding job started" }
+
+    companion object {
+        private var forwardingLocked = false
+
+        private fun runForwardingWithLock(runnable: Runnable): Boolean {
+            if (forwardingLocked) {
+                LOGGER.debug { "Forwarding is locked due to it's execution now. The new forwarding is skipped" }
+                return false
+            }
+
+            try {
+                forwardingLocked = true
+                runnable.run()
+            } finally {
+                forwardingLocked = false
+            }
+
+            return true
+        }
+    }
+
+    fun forwardAsync(): Boolean {
+        return runForwardingWithLock {
+            Thread { forward() }.start()
+        }
+    }
+
+    fun forwardSync(): Boolean {
+        return runForwardingWithLock {
+            forward()
+        }
+    }
+
+
+    private fun forward() {
+        LOGGER.debug { "Forwarding started" }
 
         logDisabledFeatures()
 
@@ -39,7 +70,7 @@ class ForwardingService (
             forwardGroupContent(vkBotGroupDetailsEntity)
         }
 
-        LOGGER.debug { "Forwarding job finished" }
+        LOGGER.debug { "Forwarding finished" }
     }
 
     private fun logDisabledFeatures() {

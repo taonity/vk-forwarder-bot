@@ -14,7 +14,6 @@ forwarder:
   vk:
     token: ${FORWARDER_VK_TOKEN}
     user-id: ${FORWARDER_VK_USER_ID}
-    group-id: ${FORWARDER_VK_GROUP_ID}
     username: ${FORWARDER_VK_USERNAME}
     password: ${FORWARDER_VK_PASSWORD}
     selenium:
@@ -27,7 +26,17 @@ forwarder:
   yt-ylp-file-path: ${FORWARDER_YT_YLP_FILE_PATH:src/dev/yt-dlp.exe}
   debug:
     max-stories-to-process: 50
+    manual-trigger-password: ${FORWARDER_DEBUG_MANUAL_TRIGGER_PASSWORD}
+#  posts:
+#    enabled: false
+  stories:
+    enabled: false
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
 
 
 logging:

@@ -5,19 +5,17 @@ import com.vk.api.sdk.objects.wall.WallpostAttachment
 import com.vk.api.sdk.objects.wall.WallpostAttachmentType
 import mu.KotlinLogging
 import org.springframework.stereotype.Component
+import org.taonity.vkforwarderbot.DateUtils
 import org.taonity.vkforwarderbot.exceptions.DbUnexpectedResponseException
 import org.taonity.vkforwarderbot.exceptions.VkUnexpectedResponseException
 import org.taonity.vkforwarderbot.tg.TgBotService
 import org.taonity.vkforwarderbot.vk.VkBotService
 import org.taonity.vkforwarderbot.vk.VkGroupDetailsEntity
 import org.taonity.vkforwarderbot.vk.VkGroupDetailsRepository
-import java.time.Instant
 import java.time.LocalDateTime
-import java.time.ZoneId
 import java.util.*
 
 private val LOGGER = KotlinLogging.logger {}
-private val ZINE_ID = ZoneId.of("UTC")
 private const val HOURS_TIME_PERIOD_TO_FORWARD_POSTS_IN = 1L
 
 @Component
@@ -79,7 +77,7 @@ class PostForwardingService (
         postDateTimeToBeginFrom: LocalDateTime
     ): List<WallItem> {
         val photoAndVideoPosts = posts.stream()
-            .filter { item -> epochMilliToLocalDateTime(item.date).isAfter(postDateTimeToBeginFrom) }
+            .filter { item -> DateUtils.epochMilliToLocalDateTime(item.date).isAfter(postDateTimeToBeginFrom) }
             .filter { item ->
                 item.attachments.stream().filter { attachment -> isOfTypePhotoOrVideo(attachment) }.findAny().isPresent
             }
@@ -104,12 +102,8 @@ class PostForwardingService (
 
     private fun getLastPostLocalDateTime(posts: List<WallItem>): LocalDateTime {
         val lastPostEpochMilli = posts[0].date
-        return epochMilliToLocalDateTime(lastPostEpochMilli)
+        return DateUtils.epochMilliToLocalDateTime(lastPostEpochMilli)
     }
-
-    private fun epochMilliToLocalDateTime(lastPostEpochMilli: Int): LocalDateTime =
-        LocalDateTime.ofInstant(Instant.ofEpochSecond(lastPostEpochMilli.toLong()), TimeZone.getTimeZone(ZINE_ID).toZoneId())
-
 
     private fun isOfTypePhotoOrVideo(attachment: WallpostAttachment) : Boolean {
         return attachment.type == WallpostAttachmentType.PHOTO || attachment.type == WallpostAttachmentType.VIDEO
