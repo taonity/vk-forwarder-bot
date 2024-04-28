@@ -84,9 +84,22 @@ jobs:
       run: mvn -B -P docker clean package -DskipTests
 
     - name: Prepare for tests with Maven
+      env:
+        FORWARDER_TG_BOT_USERNAME: ${{ secrets.FORWARDER_TG_BOT_USERNAME }}
+        FORWARDER_TG_TOKEN: ${{ secrets.FORWARDER_TG_TOKEN }}
+        FORWARDER_VK_PASSWORD: ${{ secrets.FORWARDER_VK_PASSWORD }}
+        FORWARDER_VK_TOKEN: ${{ secrets.FORWARDER_VK_TOKEN }}
+        FORWARDER_VK_USERNAME: ${{ secrets.FORWARDER_VK_USERNAME }}
+        FORWARDER_VK_USER_ID: ${{ secrets.FORWARDER_VK_USER_ID }}
       run: mvn -B -P automation clean package -DskipTests=true
 
     - name: Run tests with Maven
+      env:
+        FORWARDER_TESTING_TG_BOT_TOKEN: ${{ secrets.FORWARDER_TESTING_TG_BOT_TOKEN }}
+        FORWARDER_TESTING_TG_BOT_USERNAME: ${{ secrets.FORWARDER_TESTING_TG_BOT_USERNAME }}
+        FORWARDER_TESTING_TG_CHANNEL_ID: ${{ secrets.FORWARDER_TESTING_TG_CHANNEL_ID }}
+        FORWARDER_TESTING_VK_GROUP_ID: ${{ secrets.FORWARDER_TESTING_VK_GROUP_ID }}
+        FORWARDER_TG_BOT_USERNAME: ${{ secrets.FORWARDER_TG_BOT_USERNAME }}
       run: |
         mvn -Dtest=automation.runner.CucumberRunnerIT test
 
