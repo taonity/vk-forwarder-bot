@@ -7,6 +7,7 @@ import mu.KotlinLogging
 import org.springframework.stereotype.Component
 import org.taonity.vkforwarderbot.DateUtils
 import org.taonity.vkforwarderbot.exceptions.DbUnexpectedResponseException
+import org.taonity.vkforwarderbot.exceptions.TgUnexpectedResponseException
 import org.taonity.vkforwarderbot.exceptions.VkUnexpectedResponseException
 import org.taonity.vkforwarderbot.tg.TgBotService
 import org.taonity.vkforwarderbot.vk.VkBotService
@@ -35,11 +36,15 @@ class PostForwardingService (
         LOGGER.debug { "${photoAndVideoPosts.size} posts are ready to forward" }
 
         for (post in photoAndVideoPosts) {
-            forwardPost(post, vkBotGroupDetails.tgChannelId)
-            LOGGER.debug { "Post have been forwarded" }
+            try {
+                forwardPost(post, vkBotGroupDetails.tgChannelId)
+                LOGGER.debug { "Post have been forwarded" }
+            } catch (e: TgUnexpectedResponseException) {
+                LOGGER.error(e) { "Failed to forward post. Skip" }
+            } finally {
+                saveLastPostLocalDateTime(getPostLocalDateTime(post), vkBotGroupDetails.vkGroupId)
+            }
         }
-
-        saveLastPostLocalDateTime(lastPostLocalDateTime, vkBotGroupDetails.vkGroupId)
     }
 
     private fun forwardPost(post: WallItem, tgTargetId: String) {
@@ -101,8 +106,11 @@ class PostForwardingService (
     }
 
     private fun getLastPostLocalDateTime(posts: List<WallItem>): LocalDateTime {
-        val lastPostEpochMilli = posts[0].date
-        return DateUtils.epochMilliToLocalDateTime(lastPostEpochMilli)
+        return getPostLocalDateTime(posts[0])
+    }
+
+    private fun getPostLocalDateTime(post: WallItem): LocalDateTime {
+        return DateUtils.epochMilliToLocalDateTime(post.date)
     }
 
     private fun isOfTypePhotoOrVideo(attachment: WallpostAttachment) : Boolean {
