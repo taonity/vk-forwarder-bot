@@ -80,6 +80,16 @@ jobs:
         distribution: 'temurin'
         cache: maven
 
+    - name: Run Commands with various variables
+      env:
+        STEP_VARIABLE: STEP1
+        FORWARDER_TG_BOT_USERNAME: ${{ secrets.FORWARDER_TG_BOT_USERNAME }}
+      run: |
+        echo "Hello World"
+        echo "This is the $TEST environment variable"
+        echo "This is the $FORWARDER_TG_BOT_USERNAME environment variable"
+        echo "This is the $STEP_VARIABLE environment variable"
+
     - name: Build with Maven
       run: mvn -B -P docker clean package -DskipTests
 
