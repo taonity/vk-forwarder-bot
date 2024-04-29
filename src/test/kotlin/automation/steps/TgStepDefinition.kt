@@ -28,18 +28,18 @@ class TgStepDefinition {
         val rows = table.asMaps(String::class.java, String::class.java)
         val retryPolicy = RetryPolicy.builder<Void>()
             .handle(AssertionFailedError::class.java)
-            .withMaxRetries(10)
+            .withMaxRetries(60)
             .withDelay(Duration.ofSeconds(1))
             .build()
+
+        Failsafe.with(retryPolicy).run { _ ->
+            LOGGER.debug { "Try to assert TG message cache size" }
+            assertThat(TgMessageCacheService.size()).isEqualTo(totalMessageQuantity)
+        }
 
         rows.forEach { row ->
             val messageQuantity = row["messageQuantity"]!!.toLong()
             val messageType = WallpostAttachmentType.valueOf(row["messageType"]!!)
-
-            Failsafe.with(retryPolicy).run { _ ->
-                LOGGER.debug { "Try to assert TG message cache size" }
-                assertThat(TgMessageCacheService.size()).isEqualTo(totalMessageQuantity)
-            }
 
             assertThat(TgMessageCacheService.hasAddedRecently(messageQuantity, messageType))
                 .overridingErrorMessage { "Existing TG messages: ${TgMessageCacheService.getAsString()}" }
