@@ -91,7 +91,16 @@ jobs:
         FORWARDER_VK_TOKEN: ${{ secrets.FORWARDER_VK_TOKEN }}
         FORWARDER_VK_USERNAME: ${{ secrets.FORWARDER_VK_USERNAME }}
         FORWARDER_VK_USER_ID: ${{ secrets.FORWARDER_VK_USER_ID }}
-      run: mvn -B -P automation clean package -DskipTests=true
+
+      run: |
+        mvn -B -P automation clean package " \
+          -DFORWARDER_VK_TOKEN=${{ secrets.FORWARDER_VK_TOKEN }} \
+          -DFORWARDER_VK_USER_ID=${{ secrets.FORWARDER_VK_USER_ID }} \
+          -DFORWARDER_VK_USERNAME=${{ secrets.FORWARDER_VK_USERNAME }} \
+          -DFORWARDER_VK_PASSWORD=${{ secrets.FORWARDER_VK_PASSWORD }} \
+          -DFORWARDER_TG_TOKEN=${{ secrets.FORWARDER_TG_TOKEN }} \
+          -DFORWARDER_TG_BOT_USERNAME=${{ secrets.FORWARDER_TG_BOT_USERNAME }} \
+          " -DskipTests=true
 
     - name: Run tests with Maven
       env:
