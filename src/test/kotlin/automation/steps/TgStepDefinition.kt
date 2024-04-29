@@ -41,7 +41,7 @@ class TgStepDefinition {
             val messageQuantity = row["messageQuantity"]!!.toLong()
             val messageType = WallpostAttachmentType.valueOf(row["messageType"]!!)
 
-            assertThat(TgMessageCacheService.hasAddedRecently(messageQuantity, messageType))
+            assertThat(TgMessageCacheService.hasAdded(messageQuantity, messageType))
                 .overridingErrorMessage { "Existing TG messages: ${TgMessageCacheService.getAsString()}" }
                 .isTrue()
 

@@ -16,6 +16,6 @@ class TgBot(
     }
 
     override fun onUpdateReceived(update: Update) {
-        println(update.hasMessage())
+        /* no need */
     }
 }
