@@ -35,7 +35,9 @@ class PostForwardingService (
 
         LOGGER.debug { "${photoAndVideoPosts.size} posts are ready to forward" }
 
-        for (post in photoAndVideoPosts) {
+        val reversedPhotoAndVideoPosts = photoAndVideoPosts.reversed()
+
+        for (post in reversedPhotoAndVideoPosts) {
             try {
                 forwardPost(post, vkBotGroupDetails.tgChannelId)
                 LOGGER.debug { "Post have been forwarded" }
