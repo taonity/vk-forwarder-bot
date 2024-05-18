@@ -3,6 +3,8 @@ version: '2.4'
 services:
   app:
     image: generaltao725/vk-forwarder-bot:latest
+    # TODO: the app fails once in around 3-4 days, most likely because of luck of resources
+    restart: on-failure
     environment:
       JDK_JAVA_OPTIONS: --add-opens java.base/java.lang=ALL-UNNAMED
       JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
