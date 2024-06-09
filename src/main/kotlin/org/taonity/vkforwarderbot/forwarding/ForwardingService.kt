@@ -4,6 +4,7 @@ import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.taonity.vkforwarderbot.CacheService
+import org.taonity.vkforwarderbot.TmpDirService
 import org.taonity.vkforwarderbot.vk.VkGroupDetailsEntity
 import org.taonity.vkforwarderbot.vk.VkGroupDetailsRepository
 
@@ -15,6 +16,7 @@ class ForwardingService (
     private val postForwardingService: PostForwardingService,
     private val storyForwardingService: StoryForwardingService,
     private val cacheService: CacheService,
+    private val tmpDirService: TmpDirService,
     @Value("\${forwarder.posts.enabled:true}") val postsEnabled: Boolean,
     @Value("\${forwarder.posts.whitelist:}") val postsWhitelist: Set<Long>,
     @Value("\${forwarder.stories.enabled:true}") val storiesEnabled: Boolean,
@@ -89,6 +91,7 @@ class ForwardingService (
         } catch (e: Exception) {
             LOGGER.error(e) { "Error occurred while forwarding process" }
             cacheService.clearCache()
+            tmpDirService.removeSeleniumManagerDirs()
         }
         LOGGER.debug { "Finish forwarding for the group" }
     }
