@@ -8,7 +8,11 @@ import org.openqa.selenium.TimeoutException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.taonity.vkforwarderbot.CacheService
+import org.taonity.vkforwarderbot.CurlService
+import org.taonity.vkforwarderbot.DateUtils
 import org.taonity.vkforwarderbot.exceptions.DbUnexpectedResponseException
+import org.taonity.vkforwarderbot.exceptions.StoryVideoException
+import org.taonity.vkforwarderbot.exceptions.TgUnexpectedResponseException
 import org.taonity.vkforwarderbot.tg.TgBotService
 import org.taonity.vkforwarderbot.vk.VkBotService
 import org.taonity.vkforwarderbot.vk.VkGroupDetailsEntity
@@ -17,10 +21,12 @@ import org.taonity.vkforwarderbot.vk.selenium.SeleniumService
 import org.taonity.vkforwarderbot.vk.selenium.SeleniumVkWalker
 import org.taonity.vkforwarderbot.vk.selenium.StoryVideoDownloader
 import java.io.File
+import java.net.URI
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.*
+import java.util.Objects.nonNull
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.stream.Collectors
 
@@ -37,6 +43,7 @@ class StoryForwardingService (
     private val seleniumService: SeleniumService,
     private val vkGroupDetailsRepository: VkGroupDetailsRepository,
     private val cacheService: CacheService,
+    private val curlService: CurlService,
     @Value("\${forwarder.debug.max-stories-to-process}") private val maxStoriesToProcess: Int
 ) {
     fun forwardStories(vkBotGroupDetails: VkGroupDetailsEntity) {
@@ -51,10 +58,56 @@ class StoryForwardingService (
         if (trimmedStories.isEmpty()) {
             return
         }
+        
+        for (story in trimmedStories) {
 
-        forwardStories(trimmedStories, vkBotGroupDetails)
+            try {
+                forwardStory(story, vkBotGroupDetails)
+                LOGGER.debug { "Story have been forwarded" }
+            } catch (e: TgUnexpectedResponseException) {
+                LOGGER.error(e) { "Failed to forward post. Skip" }
+            } finally {
+                cacheService.clearCache()
+                saveLastStoryLocalDateTime(getPostLocalDateTime(story), vkBotGroupDetails.vkGroupId)
+            }
+        }
     }
 
+    private fun forwardStory(
+        story: Story,
+        vkBotGroupDetails: VkGroupDetailsEntity
+    ) {
+        val rawVideoUrl = getVideoUrlIfExists(story) ?:
+            return
+
+        val videoUrl = rawVideoUrl.toString().replace("\\", "")
+
+        val videoFullPath = curlService.downloadVideoInCache(videoUrl, story.id.toString())
+            ?: throw StoryVideoException("Video with story is and base name ${story.id} not found")
+
+        tgService.sendVideo(File(videoFullPath), null, vkBotGroupDetails.tgChannelId)
+    }
+
+    private fun getVideoUrlIfExists(story: Story): URI? {
+        if (nonNull(story.video)) {
+            val video = story.video
+            // TODO try to get other format as well
+            if (nonNull(video.files.mp4480)) {
+                return video.files.mp4480
+            } else {
+                LOGGER.warn { "Story ${story.id} doesn't have mp4_480 video format. Skip." }
+            }
+        } else {
+            LOGGER.warn { "Story ${story.id} doesn't have video. Skip." }
+        }
+        return null
+    }
+
+    private fun getPostLocalDateTime(post: Story): LocalDateTime {
+        return DateUtils.epochMilliToLocalDateTime(post.date)
+    }
+
+    @Deprecated("New story downloading has been added and is under test")
     private fun forwardStories(stories: List<Story>, vkBotGroupDetails: VkGroupDetailsEntity) {
         val seleniumVkWalker = seleniumService.buildVkWalker()
         // TODO: refactor to use several groups
