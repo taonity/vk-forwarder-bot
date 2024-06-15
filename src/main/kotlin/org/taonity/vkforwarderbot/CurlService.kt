@@ -1,6 +1,7 @@
 package org.taonity.vkforwarderbot
 
 import mu.KotlinLogging
+import org.apache.commons.lang3.SystemUtils
 import org.springframework.stereotype.Component
 import java.io.InputStreamReader
 import java.util.stream.Collectors
@@ -17,12 +18,9 @@ class CurlService(
 
         LOGGER.debug { "Start downloading the video $videoUrl with $videoBaseName name" }
 
-        val process = ProcessBuilder(
-            "bash.exe",
-            "-c",
-            "curl --silent --output ${cacheService.cacheDirPath}/${videoName} '${videoUrl}'",
-        )
-            .start()
+        val processBuilder = buildProcessBuilder(videoName, videoUrl)
+        val process = processBuilder.start()
+
         waitForVideoToDownload(process)
 
         val curlErrorLog = process.errorReader().lines().collect(Collectors.joining())
@@ -36,6 +34,24 @@ class CurlService(
             .filter { cachedVideoName -> cachedVideoName.contains(videoName) }
             .findAny()
             .getOrNull()
+    }
+
+    private fun buildProcessBuilder(videoName: String, videoUrl: String) = if (SystemUtils.IS_OS_WINDOWS) {
+        ProcessBuilder(
+            "bash.exe",
+            "-c",
+            "curl --silent --output ${cacheService.cacheDirPath}/${videoName} '${videoUrl}'",
+        )
+    } else if (SystemUtils.IS_OS_UNIX) {
+        ProcessBuilder(
+            "curl",
+            "--silent",
+            "--output",
+            "${cacheService.cacheDirPath}/${videoName}",
+            videoUrl
+        )
+    } else {
+        throw RuntimeException(String.format("Unknown os encountered: %s", SystemUtils.OS_NAME))
     }
 
     private fun waitForVideoToDownload(process: Process) {
