@@ -4,7 +4,6 @@ import com.vk.api.sdk.objects.stories.FeedItem
 import com.vk.api.sdk.objects.stories.Story
 import com.vk.api.sdk.objects.stories.StoryType
 import mu.KotlinLogging
-import org.openqa.selenium.TimeoutException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.taonity.vkforwarderbot.CacheService
@@ -17,9 +16,6 @@ import org.taonity.vkforwarderbot.tg.TgBotService
 import org.taonity.vkforwarderbot.vk.VkBotService
 import org.taonity.vkforwarderbot.vk.VkGroupDetailsEntity
 import org.taonity.vkforwarderbot.vk.VkGroupDetailsRepository
-import org.taonity.vkforwarderbot.vk.selenium.SeleniumService
-import org.taonity.vkforwarderbot.vk.selenium.SeleniumVkWalker
-import org.taonity.vkforwarderbot.vk.selenium.StoryVideoDownloader
 import java.io.File
 import java.net.URI
 import java.time.Instant
@@ -27,20 +23,16 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.*
 import java.util.Objects.nonNull
-import java.util.concurrent.atomic.AtomicInteger
-import java.util.stream.Collectors
 
 
 private val LOGGER = KotlinLogging.logger {}
 private val ZINE_ID = ZoneId.of("UTC")
 private const val HOURS_TIME_PERIOD_TO_FORWARD_POSTS_IN = 24L
-private const val STORY_CHUNK_SIZE = 3
 
 @Component
 class StoryForwardingService (
     private val vkBotService: VkBotService,
     private val tgService: TgBotService,
-    private val seleniumService: SeleniumService,
     private val vkGroupDetailsRepository: VkGroupDetailsRepository,
     private val cacheService: CacheService,
     private val curlService: CurlService,
@@ -60,7 +52,6 @@ class StoryForwardingService (
         }
         
         for (story in trimmedStories) {
-
             try {
                 forwardStory(story, vkBotGroupDetails)
                 LOGGER.debug { "Story have been forwarded" }
@@ -89,6 +80,7 @@ class StoryForwardingService (
     }
 
     private fun getVideoUrlIfExists(story: Story): URI? {
+        // TODO redundant check?
         if (nonNull(story.video)) {
             val video = story.video
             // TODO try to get other format as well
@@ -107,39 +99,6 @@ class StoryForwardingService (
         return DateUtils.epochMilliToLocalDateTime(post.date)
     }
 
-    @Deprecated("New story downloading has been added and is under test")
-    private fun forwardStories(stories: List<Story>, vkBotGroupDetails: VkGroupDetailsEntity) {
-        val seleniumVkWalker = seleniumService.buildVkWalker()
-        // TODO: refactor to use several groups
-        try {
-            forwardStoriesUsingSeleniumVkWalker(seleniumVkWalker, stories, vkBotGroupDetails)
-        } catch (e: Exception) {
-            throw e
-        } finally {
-            // TODO: causes Tried to run command without establishing a connection
-            LOGGER.debug { "Web driver quit initiated" }
-            try {
-                seleniumVkWalker.quit()
-                LOGGER.debug { "Web driver quit complete" }
-            } catch (e: Exception) {
-                LOGGER.error(e) { "Web driver quit failed" }
-            }
-        }
-    }
-
-    private fun forwardStoriesUsingSeleniumVkWalker(
-        seleniumVkWalker: SeleniumVkWalker,
-        stories: List<Story>,
-        vkBotGroupDetails: VkGroupDetailsEntity
-    ) {
-        loginIntoVkWith2Attempts(seleniumVkWalker)
-        val storyChunks = divideStoriesOnChunks(stories)
-        storyChunks.forEachIndexed { index, storyChunk ->
-            forwardStoryChunk(index, storyChunk, seleniumVkWalker, vkBotGroupDetails)
-        }
-        StoryVideoDownloader.clearUrlsOfDownloadingVideos()
-    }
-
     private fun retrieveStories(vkBotGroupDetails: VkGroupDetailsEntity): List<Story>? {
         val feedItems = vkBotService.retrieveFeedItems(vkBotGroupDetails.vkGroupId)
         val availableStoriesWithVideos = getFilteredAvailableStoriesWithVideos(feedItems)
@@ -151,38 +110,6 @@ class StoryForwardingService (
         val postDateTimeToBeginFrom =
             calculateStoryDateTimeToBeginFrom(vkBotGroupDetails.lastForwardedStoryDateTime, lastStoryLocalDateTime)
         return filterStoriesAfterGivenTime(availableStoriesWithVideos, postDateTimeToBeginFrom)
-    }
-
-    private fun loginIntoVkWith2Attempts(seleniumVkWalker: SeleniumVkWalker) {
-        // TODO: bruh
-        try {
-            seleniumVkWalker.loginIntoVk()
-        } catch (e: TimeoutException) {
-            LOGGER.warn { "Timeout while downloading story videos in cache. Retry..." }
-            seleniumVkWalker.loginIntoVk()
-        }
-    }
-
-    private fun divideStoriesOnChunks(stories: List<Story>): MutableCollection<List<Story>> {
-        val counter = AtomicInteger()
-        return stories.stream()
-            .collect(Collectors.groupingBy { counter.getAndIncrement() / STORY_CHUNK_SIZE })
-            .values
-    }
-
-    private fun forwardStoryChunk(
-        index: Int,
-        storyChunk: List<Story>,
-        seleniumVkWalker: SeleniumVkWalker,
-        vkBotGroupDetails: VkGroupDetailsEntity
-    ) {
-        LOGGER.debug { "About to forward story chunk ${index + 1} that contains ${storyChunk.size} elements" }
-        seleniumVkWalker.downloadStoryVideosInCache(storyChunk)
-        sendStoryVideosFromCacheToTg(vkBotGroupDetails.tgChannelId)
-
-        val lastStoryChunkLocalDateTime = getLastStoryLocalDateTime(storyChunk)
-        saveLastStoryLocalDateTime(lastStoryChunkLocalDateTime, vkBotGroupDetails.vkGroupId)
-        LOGGER.debug { "Story chunk forwarded" }
     }
 
     private fun filterStoriesAfterGivenTime(
@@ -205,20 +132,6 @@ class StoryForwardingService (
             .filter { story -> story.type == StoryType.VIDEO }
             .filter { story -> story.canSee() }
             .toList()
-
-    private fun sendStoryVideosFromCacheToTg(tgTargetId: String) {
-        val storyVideoPaths = cacheService.listMp4FilesInCache()
-        for (storyVideoPath in storyVideoPaths) {
-            LOGGER.debug { "Found item in cache $storyVideoPath" }
-            val storyVideoFile = File(storyVideoPath)
-            if (storyVideoFile.exists()) {
-                tgService.sendVideo(storyVideoFile, null, tgTargetId)
-            } else {
-                LOGGER.error{ "Failed to download video, video not found in cache" }
-            }
-        }
-        cacheService.clearCache()
-    }
 
 
     private fun epochMilliToLocalDateTime(lastPostEpochMilli: Int): LocalDateTime =

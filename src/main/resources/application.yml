@@ -16,9 +16,6 @@ forwarder:
     user-id: ${FORWARDER_VK_USER_ID}
     username: ${FORWARDER_VK_USERNAME}
     password: ${FORWARDER_VK_PASSWORD}
-    selenium:
-      browser-log-file-enabled: true
-      tmp-dir-cleaning-enabled: ${FORWARDER_VK_SELENIUM_TMP_DIR_CLEANING_ENABLED:false}
   tg:
     token: ${FORWARDER_TG_TOKEN}
     bot-username: ${FORWARDER_TG_BOT_USERNAME}
