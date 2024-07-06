@@ -41,17 +41,12 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
         <dependency>
             <groupId>com.vk.api</groupId>
             <artifactId>sdk</artifactId>
-            <version>1.0.16</version>
+            <version>1.0.15</version>
         </dependency>
         <dependency>
             <groupId>org.telegram</groupId>
@@ -100,6 +95,13 @@
             <groupId>dev.failsafe</groupId>
             <artifactId>failsafe</artifactId>
             <version>3.3.2</version>
+        </dependency>
+        <!-- Caused by issue like https://github.com/springwolf/springwolf-core/issues/361 -->
+        <!-- TODO the artifact is deprecated, any better approaches? -->
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.3.0</version>
         </dependency>
 
         <dependency>
@@ -368,7 +370,7 @@
                     <plugin>
                         <groupId>com.google.cloud.tools</groupId>
                         <artifactId>jib-maven-plugin</artifactId>
-                        <version>3.4.3</version>
+                        <version>3.4.2</version>
                         <configuration>
                             <from>
                                 <image>generaltao725/yt-dlp-java17:latest</image>
