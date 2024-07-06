@@ -12,13 +12,13 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <kotlin.code.style>official</kotlin.code.style>
         <kotlin.compiler.jvmTarget>17</kotlin.compiler.jvmTarget>
-        <kotlin.version>1.9.0</kotlin.version>
+        <kotlin.version>1.9.24</kotlin.version>
     </properties>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.1.2</version>
+        <version>3.3.1</version>
         <relativePath/>
     </parent>
 
@@ -27,7 +27,7 @@
             <dependency>
                 <groupId>io.cucumber</groupId>
                 <artifactId>cucumber-bom</artifactId>
-                <version>7.13.0</version>
+                <version>7.18.0</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -41,11 +41,6 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
         <dependency>
@@ -56,7 +51,7 @@
         <dependency>
             <groupId>org.telegram</groupId>
             <artifactId>telegrambots</artifactId>
-            <version>6.8.0</version>
+            <version>6.9.7.1</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -69,12 +64,12 @@
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-reflect</artifactId>
-            <version>1.9.22</version>
+            <version>1.9.24</version>
         </dependency>
         <dependency>
             <groupId>io.github.microutils</groupId>
             <artifactId>kotlin-logging-jvm</artifactId>
-            <version>2.0.11</version>
+            <version>2.1.23</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
@@ -100,6 +95,13 @@
             <groupId>dev.failsafe</groupId>
             <artifactId>failsafe</artifactId>
             <version>3.3.2</version>
+        </dependency>
+        <!-- Caused by issue like https://github.com/springwolf/springwolf-core/issues/361 -->
+        <!-- TODO the artifact is deprecated, any better approaches? -->
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.3.0</version>
         </dependency>
 
         <dependency>
@@ -226,7 +228,7 @@
             <plugin>
                 <groupId>com.diffplug.spotless</groupId>
                 <artifactId>spotless-maven-plugin</artifactId>
-                <version>2.38.0</version>
+                <version>2.43.0</version>
                 <configuration>
                     <java>
                         <includes>
@@ -368,7 +370,7 @@
                     <plugin>
                         <groupId>com.google.cloud.tools</groupId>
                         <artifactId>jib-maven-plugin</artifactId>
-                        <version>3.3.2</version>
+                        <version>3.4.2</version>
                         <configuration>
                             <from>
                                 <image>generaltao725/yt-dlp-java17:latest</image>
