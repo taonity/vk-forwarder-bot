@@ -15,6 +15,14 @@
       ],
       "groupName": "all non-major dependencies",
       "groupSlug": "all-minor-patch"
+    },
+    {
+      "packageNames": ["com.google.cloud.tools:jib-maven-plugin"],
+      "allowedVersions": "3.4.2"
+    },
+    {
+      "packageNames": ["com.vk.api:sdk"],
+      "allowedVersions": "1.0.15"
     }
   ]
 }
