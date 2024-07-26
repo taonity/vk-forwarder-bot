@@ -1,4 +1,5 @@
 #!/bin/bash
+# TODO make chmod +x
 
 mkdir -p /backup/current
 
