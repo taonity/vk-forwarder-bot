@@ -63,7 +63,7 @@ Use a DB GUI to access Postgres. Use the credentials from this [env file](src/te
 Add a row into the `vk_group_details` table:
 ```
 INSERT INTO vk_group_details (vk_group_id,tg_channel_id)
-VALUES (<VK group id>,'TG channel id');
+VALUES (<VK group id>,'<TG channel id>');
 ```
 The table column's description
 
