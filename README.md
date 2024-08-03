@@ -5,7 +5,7 @@ A bot that forwards content from a VK group to a Telegram channel
 - Forward post photos and videos
 - Forward story videos
 - Polling VK once per hour to forward new content
-- HTTP endpoint to force forwarding circle
+- HTTP endpoint to force forwarding cycle
 - 1 DB row per each VK-Telegram group-channel pair
 
 ### How to run
