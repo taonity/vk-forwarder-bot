@@ -42,3 +42,4 @@ build/
 .git-versioned-pom.xml
 cookies.netscape
 cache
+test.ps1

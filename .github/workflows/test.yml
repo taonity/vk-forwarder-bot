@@ -81,7 +81,9 @@ jobs:
         cache: maven
 
     - name: Build with Maven
-      run: mvn -B -P docker clean package -DskipTests
+      run: |
+        mvn -v
+        mvn -B -P docker clean package -DskipTests
 
     - name: Prepare for tests with Maven
       run: |
@@ -102,5 +104,5 @@ jobs:
         FORWARDER_TESTING_VK_GROUP_ID: ${{ secrets.FORWARDER_TESTING_VK_GROUP_ID }}
         FORWARDER_TG_BOT_USERNAME: ${{ secrets.FORWARDER_TG_BOT_USERNAME }}
       run: |
-        mvn -Dtest=automation.runner.CucumberRunnerIT test
+        mvn test -Dtest=automation.runner.CucumberRunnerIT
 
