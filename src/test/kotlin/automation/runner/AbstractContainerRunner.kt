@@ -3,7 +3,7 @@ package automation.runner
 import org.junit.jupiter.api.Test
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.testcontainers.containers.DockerComposeContainer
+import org.testcontainers.containers.ComposeContainer
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.lifecycle.Startables
@@ -19,16 +19,16 @@ abstract class AbstractContainerRunner {
     }
 
     companion object {
-        private var ENVIRONMENT: DockerComposeContainer<*>? = null
+        private var ENVIRONMENT: ComposeContainer? = null
         private var log: Logger = LoggerFactory.getLogger("automation-tests")
 
         init {
             ENVIRONMENT = if (SystemUtils.IS_OS_WINDOWS) {
-                DockerComposeContainer(composeFile)
+                ComposeContainer(composeFile)
                     .withLocalCompose(true)
                     .withOptions("--compatibility")
             } else if (SystemUtils.IS_OS_UNIX) {
-                DockerComposeContainer(composeFile).withLocalCompose(true)
+                ComposeContainer(composeFile).withLocalCompose(true)
             } else {
                 throw RuntimeException(String.format("Unknown os encountered: %s", SystemUtils.OS_NAME))
             }
