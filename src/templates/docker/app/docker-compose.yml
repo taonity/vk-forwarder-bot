@@ -3,8 +3,6 @@ version: '2.4'
 services:
   app:
     image: generaltao725/vk-forwarder-bot:latest
-    # TODO: the app fails once in around 3-4 days, most likely because of luck of resources
-    restart: on-failure
     environment:
       JDK_JAVA_OPTIONS: --add-opens java.base/java.lang=ALL-UNNAMED
       JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
@@ -14,8 +12,8 @@ services:
       - ./config:/config
       - ./cookies.netscape:/vk-forwarder-bot/cookies.netscape
     ports:
-      - 9015:9015
-      - 5005:5005
+      - 127.0.0.1:9015:9015
+      - 127.0.0.1:5006:5005
     healthcheck:
       test: curl localhost:9015/actuator/health || exit 1
       interval: 10s
