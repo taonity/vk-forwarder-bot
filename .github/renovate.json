@@ -6,6 +6,19 @@
   "schedule": ["before 4am"],
   "packageRules": [
     {
+      "matchManagers": ["github-actions"],
+      "matchPackagePatterns": [
+        "*"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "groupName": "all non-major dependencies",
+      "groupSlug": "all-minor-patch"
+    },
+    {
+      "matchManagers": ["maven", "docker-compose"],
       "matchPackagePatterns": [
         "*"
       ],
