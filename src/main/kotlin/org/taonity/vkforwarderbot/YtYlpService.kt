@@ -9,6 +9,7 @@ import java.util.stream.Collectors
 
 
 private val LOGGER = KotlinLogging.logger {}
+private const val YT_YLP_ALLOWED_ERROR_LOG = "WARNING: [vk] Failed to download m3u8 information: HTTP Error 404: Not Found"
 
 @Component
 class YtYlpService(
@@ -24,8 +25,12 @@ class YtYlpService(
 
         val ytDlpErrorLog = runDownloadingProcessAndWait(vkVideoUrl)
         if(ytDlpErrorLog.isNotEmpty()) {
-            LOGGER.error { ytDlpErrorLog }
-            return null
+            if (ytDlpErrorLog == YT_YLP_ALLOWED_ERROR_LOG) {
+                LOGGER.warn { ytDlpErrorLog }
+            } else {
+                LOGGER.error { ytDlpErrorLog }
+                return null
+            }
         }
 
         return cacheService.listFilesInCache().stream()
