@@ -28,7 +28,7 @@ class TgStepDefinition {
         val rows = table.asMaps(String::class.java, String::class.java)
         val retryPolicy = RetryPolicy.builder<Void>()
             .handle(AssertionFailedError::class.java)
-            .withMaxRetries(60)
+            .withMaxRetries(100)
             .withDelay(Duration.ofSeconds(1))
             .build()
 

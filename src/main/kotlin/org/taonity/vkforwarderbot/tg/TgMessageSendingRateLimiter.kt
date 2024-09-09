@@ -50,15 +50,15 @@ class TgMessageSendingRateLimiter {
     }
 
     private fun calculateTotalSleepTime(timeNow: LocalDateTime, tokensLeft: Int): Long {
-        val millisToWaitForSecondsCircleEnd = getMillisFromNowUntilSecondsCircleEnd(timeNow)
+        val millisToWaitForSecondsCycleEnd = getMillisFromNowUntilSecondsCycleEnd(timeNow)
         val millisLeftUntilTokensRefill = getMillisFromNowUntilNexRefillTime(tokensLeft, timeNow)
-        return sumTotalSleepTime(millisToWaitForSecondsCircleEnd, millisLeftUntilTokensRefill)
+        return sumTotalSleepTime(millisToWaitForSecondsCycleEnd, millisLeftUntilTokensRefill)
     }
 
-    private fun sumTotalSleepTime(millisToWaitForSecondsCircleEnd: Long?, millisLeftUntilTokensRefill: Long?): Long {
+    private fun sumTotalSleepTime(millisToWaitForSecondsCycleEnd: Long?, millisLeftUntilTokensRefill: Long?): Long {
         var totalSleepTime = 0L
-        if (millisToWaitForSecondsCircleEnd != null) {
-            totalSleepTime += millisToWaitForSecondsCircleEnd
+        if (millisToWaitForSecondsCycleEnd != null) {
+            totalSleepTime += millisToWaitForSecondsCycleEnd
         }
         if (millisLeftUntilTokensRefill != null) {
             totalSleepTime += millisLeftUntilTokensRefill
@@ -75,11 +75,11 @@ class TgMessageSendingRateLimiter {
             null
         }
 
-    private fun getMillisFromNowUntilSecondsCircleEnd(timeNow: LocalDateTime) =
-        if (getSecondCircleEndTime().isAfter(timeNow)) {
-            val millisToWaitForSecondsCircleEnd = ChronoUnit.MILLIS.between(timeNow, getSecondCircleEndTime())
-            LOGGER.debug { "Seconds circle is active, have to sleep for ${millisToWaitForSecondsCircleEnd / 1000.0} secs" }
-            millisToWaitForSecondsCircleEnd
+    private fun getMillisFromNowUntilSecondsCycleEnd(timeNow: LocalDateTime) =
+        if (getSecondCycleEndTime().isAfter(timeNow)) {
+            val millisToWaitForSecondsCycleEnd = ChronoUnit.MILLIS.between(timeNow, getSecondCycleEndTime())
+            LOGGER.debug { "Seconds cycle is active, have to sleep for ${millisToWaitForSecondsCycleEnd / 1000.0} secs" }
+            millisToWaitForSecondsCycleEnd
         } else {
             null
         }
@@ -94,7 +94,7 @@ class TgMessageSendingRateLimiter {
         acquireTokensAndRun(1, runnable)
     }
 
-    private fun getSecondCircleEndTime(): LocalDateTime = lastAcquiringTime.plusSeconds(lastTokensUsed)
+    private fun getSecondCycleEndTime(): LocalDateTime = lastAcquiringTime.plusSeconds(lastTokensUsed)
 
     private fun getNextTokenRefillTime(): LocalDateTime = lastRefillTime.plusMinutes(1)
 }
