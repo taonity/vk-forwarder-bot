@@ -45,6 +45,8 @@ jobs:
         GH_TOKEN: ${{ github.token }}
       with:
         github-token: ${{ secrets.APPROVE_WORKFLOW_GITHUB_TOKEN }}
+        # TODO some workflows can fail on pending_deployments request with error massage No pending deployment requests to approve or reject
+        # This happens at least when two workflows are running on several PRs in parralel
         script: |
           await github.rest.actions.reviewPendingDeploymentsForRun({
             owner: context.repo.owner,
