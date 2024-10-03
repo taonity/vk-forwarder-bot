@@ -14,8 +14,8 @@
         "minor",
         "patch"
       ],
-      "groupName": "all non-major dependencies",
-      "groupSlug": "all-minor-patch"
+      "groupName": "github-actions dependencies",
+      "groupSlug": "github-actions-patch"
     },
     {
       "matchManagers": ["maven", "docker-compose"],
