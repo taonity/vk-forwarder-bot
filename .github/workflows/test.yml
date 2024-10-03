@@ -46,14 +46,16 @@ jobs:
       with:
         github-token: ${{ secrets.APPROVE_WORKFLOW_GITHUB_TOKEN }}
         script: |
-          await github.rest.actions.reviewPendingDeploymentsForRun({
+          const passingObj = {
             owner: context.repo.owner,
             repo: context.repo.repo,
             run_id: context.runId,
             environment_ids: [${{ steps.environment-id.outputs.result }}],
             state: 'approved',
             comment: 'Ship it!',
-          });
+          };
+          console.log(passingObj);
+          await github.rest.actions.reviewPendingDeploymentsForRun(passingObj);
 
 
   test:
