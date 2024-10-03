@@ -36,6 +36,10 @@
     {
       "packageNames": ["com.vk.api:sdk"],
       "allowedVersions": "1.0.15"
+    },
+    {
+      "packageNames": ["postgres"],
+      "allowedVersions": "16"
     }
   ]
 }
