@@ -23,7 +23,7 @@ forwarder:
   yt-ylp-file-path: ${FORWARDER_YT_YLP_FILE_PATH:src/dev/yt-dlp.exe}
   debug:
     max-stories-to-process: 50
-    manual-trigger-password: ${FORWARDER_DEBUG_MANUAL_TRIGGER_PASSWORD}
+    manual-trigger-password: ${FORWARDER_DEBUG_MANUAL_TRIGGER_PASSWORD:1234}
 
 management:
   endpoints:
