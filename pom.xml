@@ -22,6 +22,14 @@
         <relativePath/>
     </parent>
 
+    <distributionManagement>
+        <repository>
+            <id>vfb-vfb</id>
+            <name>vfb-vfb</name>
+            <url>https://vfb-992382709576.d.codeartifact.eu-north-1.amazonaws.com/maven/vfb/</url>
+        </repository>
+    </distributionManagement>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -246,7 +254,7 @@
             <id>automation</id>
             <properties>
                 <docker-compose.path>target/docker/test</docker-compose.path>
-                <docker-compose.file>docker-compose-test.yml</docker-compose.file>
+                <docker-compose.file>docker-compose.yml</docker-compose.file>
                 <docker-compose.full-path>
                     ${docker-compose.path}/${docker-compose.file}
                 </docker-compose.full-path>

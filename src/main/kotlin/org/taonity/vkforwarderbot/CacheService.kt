@@ -3,6 +3,7 @@ package org.taonity.vkforwarderbot
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
+import org.taonity.vkforwarderbot.exceptions.CacheServiceException
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -20,7 +21,10 @@ class CacheService(
     fun createCacheDirIfMissing() {
         val cacheDir = File(cacheDirPath)
         if(!cacheDir.exists()) {
-            cacheDir.mkdir()
+            val dirWasCreated = cacheDir.mkdirs()
+            if (!dirWasCreated) {
+                throw CacheServiceException("Failed to create cache dir with path $cacheDirPath")
+            }
         }
     }
 
