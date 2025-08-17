@@ -55,7 +55,7 @@ class ForwardingService (
 
 
     private fun forward() {
-        LOGGER.debug { "Forwarding started" }
+        LOGGER.debug { "Forwarding started test version" }
 
         logDisabledFeatures()
 
